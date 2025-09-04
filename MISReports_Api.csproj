@@ -262,6 +262,7 @@
     <Compile Include="Models\TrialBalance\TrialBalanceModel.cs" />
     <Compile Include="Models\UserRoleModel.cs" />
     <Compile Include="Models\Inventory\WarehouseModel.cs" />
+    <Compile Include="Models\WorkInProgress.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
