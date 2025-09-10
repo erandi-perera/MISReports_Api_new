@@ -1,198 +1,124 @@
 ﻿using MISReports_Api.Models;
 using Oracle.ManagedDataAccess.Client;
-using Oracle.ManagedDataAccess.Types;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data;
-using System.Linq;
 
 namespace MISReports_Api.DAL
 {
     public class ProvinceIncomeExpenditureRepository
     {
-        private readonly string connectionString = ConfigurationManager.ConnectionStrings["HQOracle"].ConnectionString;
+        private readonly string connectionString =
+            ConfigurationManager.ConnectionStrings["Darcon16Oracle"].ConnectionString;
 
-        public List<ProvinceIncomeExpenditureModel> GetProvinceIncomeExpenditure(string compId, string repYear, string repMonth)
+        public List<ProvinceIncomeExpenditureModel> GetProvinceIncomeExpenditure(
+            string compId, string repYear, string repMonth)
         {
-            var provinceList = new List<ProvinceIncomeExpenditureModel>();
+            var rows = new List<ProvinceIncomeExpenditureModel>();
 
-            try
+            using (var conn = new OracleConnection(connectionString))
             {
-                using (var conn = new OracleConnection(connectionString))
+                conn.Open();
+
+                using (var cmd = new OracleCommand(BuildNewQuery(), conn))
                 {
-                    conn.Open();
+                    cmd.BindByName = true;
+                    cmd.CommandTimeout = 300;
 
-                    string sql = BuildFixedQuery();
+                    // parameters (normalize once)
+                    cmd.Parameters.Add("companyId", OracleDbType.Varchar2).Value = compId.Trim().ToUpper();
+                    cmd.Parameters.Add("year", OracleDbType.Varchar2).Value = repYear.Trim();  // use varchar; cast in SQL
+                    cmd.Parameters.Add("month", OracleDbType.Varchar2).Value = repMonth.Trim();
 
-                    using (var cmd = new OracleCommand(sql, conn))
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        cmd.BindByName = true;
-                        cmd.CommandTimeout = 300;
-
-                        cmd.Parameters.Add("compId", OracleDbType.Varchar2).Value = compId;
-                        cmd.Parameters.Add("repyear", OracleDbType.Varchar2).Value = repYear;
-                        cmd.Parameters.Add("repmonth", OracleDbType.Varchar2).Value = repMonth;
-
-                        using (var reader = cmd.ExecuteReader())
+                        while (reader.Read())
                         {
-                            while (reader.Read())
+                            rows.Add(new ProvinceIncomeExpenditureModel
                             {
-                                var model = new ProvinceIncomeExpenditureModel
-                                {
-                                    TitleCd = SafeGetString(reader, "title_cd"),
-                                    Account = SafeGetString(reader, "ACCOUNT"),
-                                    Actual = SafeGetDecimal(reader, "ACTUAL"),
-                                    CatName = SafeGetString(reader, "CATNAME"),
-                                    MaxRev = SafeGetString(reader, "MAXREV"),
-                                    CatCode = SafeGetString(reader, "CATCODE"),
-                                    CatFlag = SafeGetString(reader, "CATFLAG"),
-                                    AreaNum = SafeGetString(reader, "Area_num"),
-                                    CctName = SafeGetString(reader, "cct_nm")
-                                };
-
-                                provinceList.Add(model);
-                            }
+                                TitleCd = SafeGetString(reader, "TITLE_CD"),
+                                Account = SafeGetString(reader, "ACCOUNT"),
+                                Actual = SafeGetDecimal(reader, "ACTUAL"),
+                                CatName = SafeGetString(reader, "CATNAME"),
+                                MaxRev = "", // not supplied by query
+                                CatCode = SafeGetString(reader, "CATCODE"),
+                                CatFlag = SafeGetString(reader, "CATFLAG"),
+                                AreaNum = SafeGetString(reader, "AREA_NUM"),
+                                CctName = SafeGetString(reader, "CCT_NM"),
+                            });
                         }
                     }
-
-                    // Remove duplicates after query execution
-                    provinceList = RemoveDuplicates(provinceList);
                 }
             }
-            catch (Exception ex)
-            {
-                throw;
-            }
 
-            return provinceList;
+            return rows;
         }
 
-        private string BuildFixedQuery()
+        private string BuildNewQuery()
         {
-            // Fixed query that properly aggregates and avoids duplicates
-            string fixedQuery = @"
-WITH base_data AS (
-    SELECT 
-        C.title_cd,
-        C.ac_cd,
-        K.ac_Nm,
-        TL.title_nm,
-        L.dept_id,
-        L.cl_bal,
-        D.comp_id as dept_comp_id
-    FROM glacgrpm C
-        INNER JOIN gltitlm TL ON C.title_cd = TL.title_cd
-        INNER JOIN glacctm K ON C.ac_cd = K.ac_cd
-        INNER JOIN glledgrm LM ON LM.ac_cd = C.ac_cd
-        LEFT OUTER JOIN gllegbal L ON LM.gl_cd = L.gl_cd
-        LEFT OUTER JOIN gldeptm D ON L.dept_id = D.dept_id
-    WHERE L.yr_ind = :repyear
-        AND L.mth_ind = :repmonth
-        AND (C.title_cd LIKE 'XP%' OR C.title_cd LIKE 'IN%')
-        AND L.cl_bal IS NOT NULL
-),
-aggregated_data AS (
-    SELECT 
-        title_cd,
-        ac_cd,
-        ac_Nm,
-        title_nm,
-        -- Determine the area number consistently
-        CASE 
-            WHEN dept_comp_id = :compId THEN dept_id
-            ELSE SUBSTR(NVL(dept_id, 'N/A'), 1, 3)
-        END AS area_num,
-        dept_id,
-        SUM(cl_bal) as total_balance
-    FROM base_data
-    GROUP BY 
-        title_cd,
-        ac_cd,
-        ac_Nm,
-        title_nm,
-        CASE 
-            WHEN dept_comp_id = :compId THEN dept_id
-            ELSE SUBSTR(NVL(dept_id, 'N/A'), 1, 3)
-        END,
-        dept_id
-)
-SELECT 
-    AD.title_cd,
-    AD.ac_cd AS ACCOUNT,
-    NVL(ROUND(AD.total_balance, 2), 0.00) AS ACTUAL,
-    AD.ac_Nm AS CATNAME,
+            // NOTE:
+            // - No trailing semicolon
+            // - Explicit join to GLCOMPM as GC
+            // - Normalize company & dept, explicit numeric casts for year/month
+            return @"
+SELECT
+    C.title_cd,
+    C.ac_cd AS ACCOUNT,
+    NVL(ROUND(SUM(NVL(L.cl_bal,0)), 2), 0.00) AS ACTUAL,
+    K.ac_nm AS CATNAME,
     '' AS MAXREV,
-    AD.title_nm AS CATCODE,
-    SUBSTR(AD.title_cd, 1, 1) AS CATFLAG,
-    AD.area_num AS Area_num,
-    COALESCE(
-        (SELECT dept_nm FROM gldeptm WHERE dept_id = AD.dept_id),
-        (SELECT dept_nm FROM gldeptm WHERE dept_id = SUBSTR(AD.dept_id, 1, 3) || '.00'),
-        'Unknown Department'
-    ) AS cct_nm
-FROM aggregated_data AD
-ORDER BY 
-    SUBSTR(AD.title_cd, 1, 1),  -- CATFLAG
-    AD.title_cd,                -- title_cd  
-    AD.ac_cd,                   -- ACCOUNT
-    AD.ac_Nm                    -- CATNAME";
-
-            return fixedQuery;
+    TL.title_nm AS CATCODE,
+    SUBSTR(C.title_cd, 1, 1) AS CATFLAG,
+    CASE
+        WHEN TRIM(UPPER(D.comp_id)) = :companyId THEN D.dept_id
+        ELSE SUBSTR(D.dept_id, 1, 3)
+    END AS AREA_NUM,
+    D.dept_nm AS CCT_NM
+FROM glacgrpm   C
+JOIN gltitlm    TL ON TL.title_cd = C.title_cd
+JOIN glacctm    K  ON K.ac_cd     = C.ac_cd
+JOIN glledgrm   LM ON LM.ac_cd    = C.ac_cd
+JOIN gllegbal   L  ON L.gl_cd     = LM.gl_cd
+JOIN gldeptm    D  ON D.dept_id   = L.dept_id
+JOIN glcompm    GC ON TRIM(UPPER(GC.comp_id)) = TRIM(UPPER(D.comp_id))
+WHERE
+      ( TRIM(UPPER(GC.comp_id))  = :companyId
+        OR TRIM(UPPER(GC.parent_id)) = :companyId )
+  AND L.yr_ind  = TO_NUMBER(:year)
+  AND L.mth_ind = TO_NUMBER(:month)
+  AND (C.title_cd LIKE 'XP%' OR C.title_cd LIKE 'IN%')
+GROUP BY
+    C.title_cd,
+    C.ac_cd,
+    K.ac_nm,
+    TL.title_nm,
+    CASE
+        WHEN TRIM(UPPER(D.comp_id)) = :companyId THEN D.dept_id
+        ELSE SUBSTR(D.dept_id, 1, 3)
+    END,
+    L.dept_id,
+    D.dept_nm
+ORDER BY AREA_NUM, C.title_cd, C.ac_cd, K.ac_nm, TL.title_nm";
         }
 
-        // Method to remove duplicates based on key fields
-        private List<ProvinceIncomeExpenditureModel> RemoveDuplicates(List<ProvinceIncomeExpenditureModel> originalList)
+        private static string SafeGetString(OracleDataReader reader, string name)
         {
-            var uniqueRecords = new Dictionary<string, ProvinceIncomeExpenditureModel>();
-
-            foreach (var record in originalList)
-            {
-                // Create a unique key based on the main identifying fields
-                string uniqueKey = $"{record.TitleCd}_{record.Account}_{record.AreaNum}";
-
-                if (uniqueRecords.ContainsKey(uniqueKey))
-                {
-                    // If duplicate found, sum the actual values
-                    uniqueRecords[uniqueKey].Actual += record.Actual;
-                 
-                }
-                else
-                {
-                    uniqueRecords.Add(uniqueKey, new ProvinceIncomeExpenditureModel
-                    {
-                        TitleCd = record.TitleCd,
-                        Account = record.Account,
-                        Actual = record.Actual,
-                        CatName = record.CatName,
-                        MaxRev = record.MaxRev,
-                        CatCode = record.CatCode,
-                        CatFlag = record.CatFlag,
-                        AreaNum = record.AreaNum,
-                        CctName = record.CctName
-                    });
-                }
-            }
-
-            return uniqueRecords.Values.OrderBy(x => x.CatFlag)
-                                     .ThenBy(x => x.TitleCd)
-                                     .ThenBy(x => x.Account)
-                                     .ThenBy(x => x.CatName)
-                                     .ToList();
+            var i = reader.GetOrdinal(name);
+            return reader.IsDBNull(i) ? string.Empty : reader.GetString(i);
         }
 
-
-
-        private string SafeGetString(OracleDataReader reader, string columnName)
+        private static decimal SafeGetDecimal(OracleDataReader reader, string name)
         {
-            int ordinal = reader.GetOrdinal(columnName);
-            return reader.IsDBNull(ordinal) ? string.Empty : reader.GetString(ordinal);
-        }
+            var i = reader.GetOrdinal(name);
+            if (reader.IsDBNull(i)) return 0m;
 
-        private decimal SafeGetDecimal(OracleDataReader reader, string columnName)
-        {
-            int ordinal = reader.GetOrdinal(columnName);
-            return reader.IsDBNull(ordinal) ? 0m : reader.GetDecimal(ordinal);
+            // Some Oracle NUMBER columns may come back as decimal/double
+            var obj = reader.GetValue(i);
+            if (obj is decimal dec) return dec;
+            if (obj is double dub) return Convert.ToDecimal(dub);
+            if (obj is float flt) return Convert.ToDecimal(flt);
+            if (obj is int ii) return ii;
+            return Convert.ToDecimal(obj);
         }
     }
 }

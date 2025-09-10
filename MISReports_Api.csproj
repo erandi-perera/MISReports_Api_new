@@ -273,6 +273,7 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\SampleDirection.cs" />
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
+    <Compile Include="Controllers\CostCenterWorkInProgressController.cs" />
     <Compile Include="Controllers\Debtors\AreasController.cs" />
     <Compile Include="Controllers\Debtors\BillCycleController.cs" />
     <Compile Include="Controllers\Debtors\DebtorDetailController.cs" />
@@ -291,6 +292,7 @@
     <Compile Include="Controllers\TrialBalance\TrialBalanceController.cs" />
     <Compile Include="Controllers\UserRoleController.cs" />
     <Compile Include="Controllers\Inventory\WarehouseController.cs" />
+    <Compile Include="DAL\CostCenterWorkInProgressRepository.cs" />
     <Compile Include="DAL\Debtors\AreasRepository.cs" />
     <Compile Include="DAL\Debtors\BillCycleRepository.cs" />
     <Compile Include="DAL\Debtors\DebtorDetailRepository.cs" />
@@ -342,7 +344,7 @@
     <Compile Include="Models\TrialBalance\TrialBalanceModel.cs" />
     <Compile Include="Models\UserRoleModel.cs" />
     <Compile Include="Models\Inventory\WarehouseModel.cs" />
-    <Compile Include="Models\WorkInProgress.cs" />
+    <Compile Include="Models\CostCenterWorkInProgressModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
