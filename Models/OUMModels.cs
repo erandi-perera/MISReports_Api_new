@@ -15,7 +15,7 @@ namespace MISReports_Api.Models
         public decimal TotAmt { get; set; }
         public string AuthCode { get; set; }
         public string CardNo { get; set; }
-        public string ErrorMessage { get; set; }
+
     }
 
     public class OUMCrdTempModel
@@ -49,6 +49,13 @@ namespace MISReports_Api.Models
         public string ErrorMessage { get; set; }
     }
 
+
+    public class OUMRequestModel
+    {
+        public List<OUMEmployeeModel> InsertModel { get; set; }
+
+    }
+
     public class OUMUploadResponseModel
     {
         public int RecordsInserted { get; set; }
@@ -63,6 +70,7 @@ namespace MISReports_Api.Models
         public string Message { get; set; }
         public string ErrorMessage { get; set; }
         public int RecordsProcessed { get; set; }
+        public List<OUMCrdTempModel> Data { get; set; }
     }
 
     public class OUMRecordsResponseModel
@@ -70,5 +78,6 @@ namespace MISReports_Api.Models
         public List<OUMCrdTempModel> Records { get; set; }
         public int TotalRecords { get; set; }
         public string ErrorMessage { get; set; }
+        public bool Success { get; set; }
     }
 }

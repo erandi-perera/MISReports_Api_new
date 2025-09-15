@@ -273,7 +273,7 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\SampleDirection.cs" />
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
-    <Compile Include="Controllers\CostCenterWorkInProgressController.cs" />
+    <Compile Include="Controllers\WorkInProgController\CostCenterWorkInProgressController.cs" />
     <Compile Include="Controllers\Debtors\AreasController.cs" />
     <Compile Include="Controllers\Debtors\BillCycleController.cs" />
     <Compile Include="Controllers\Debtors\DebtorDetailController.cs" />
@@ -292,7 +292,9 @@
     <Compile Include="Controllers\TrialBalance\TrialBalanceController.cs" />
     <Compile Include="Controllers\UserRoleController.cs" />
     <Compile Include="Controllers\Inventory\WarehouseController.cs" />
-    <Compile Include="DAL\CostCenterWorkInProgressRepository.cs" />
+    <Compile Include="Controllers\WorkInProgController\ProjectAgeAnalysisController.cs" />
+    <Compile Include="Controllers\WorkInProgController\ProjectCommitmentSummaryController.cs" />
+    <Compile Include="DAL\WorkInProgRepo\CostCenterWorkInProgressRepository.cs" />
     <Compile Include="DAL\Debtors\AreasRepository.cs" />
     <Compile Include="DAL\Debtors\BillCycleRepository.cs" />
     <Compile Include="DAL\Debtors\DebtorDetailRepository.cs" />
@@ -315,6 +317,8 @@
     <Compile Include="DAL\TrialBalance\TrialBalanceRepository.cs" />
     <Compile Include="DAL\UserRoleRepository.cs" />
     <Compile Include="DAL\Inventory\WarehouseRepository.cs" />
+    <Compile Include="DAL\WorkInProgRepo\ProjectAgeAnalysisRepository.cs" />
+    <Compile Include="DAL\WorkInProgRepo\ProjectCommitmentSummaryRepository.cs" />
     <Compile Include="DBAccess\DBConnection.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -344,7 +348,9 @@
     <Compile Include="Models\TrialBalance\TrialBalanceModel.cs" />
     <Compile Include="Models\UserRoleModel.cs" />
     <Compile Include="Models\Inventory\WarehouseModel.cs" />
-    <Compile Include="Models\CostCenterWorkInProgressModel.cs" />
+    <Compile Include="Models\WorkInProgress\CostCenterWorkInProgressModel.cs" />
+    <Compile Include="Models\WorkInProgress\ProjectAgeAnalysisModel.cs" />
+    <Compile Include="Models\WorkInProgress\ProjectCommitmentSummaryModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

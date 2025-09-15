@@ -3,25 +3,27 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
-using System.Data.Odbc;
+using System.Data.OleDb;
 
 namespace MISReports_Api.DAL
 {
     public class OUMRepository
     {
-        private readonly string connectionString = ConfigurationManager.ConnectionStrings["InformixCreditCard"].ConnectionString;
-
+        //private readonly string connectionString = ConfigurationManager.ConnectionStrings["InformixCreditCard"].ConnectionString;
+        // private readonly string connectionString = "Provider=Ifxoledbc.2;Password=run10times;User ID=appadm1;Data Source=crdtcard@hqinfdb10";
+        string connectionstring = "Provider=Ifxoledbc.2;Password=run10times;User ID=appadm1;Data Source=crdtcard@hqinfdb10";
         public int InsertIntoAmex2(List<OUMEmployeeModel> data)
         {
+
+
             int count = 0;
-            using (var conn = new OdbcConnection(connectionString))
+            using (OleDbConnection conn = new OleDbConnection(connectionstring))
             {
                 try
                 {
                     conn.Open();
-
                     // Clear existing data
-                    using (var cmd = new OdbcCommand("DELETE FROM test_amex2", conn))
+                    using (var cmd = new OleDbCommand("DELETE FROM test_amex2", conn))
                     {
                         cmd.ExecuteNonQuery();
                     }
@@ -29,7 +31,7 @@ namespace MISReports_Api.DAL
                     // Insert new data
                     foreach (var item in data)
                     {
-                        using (var cmd = new OdbcCommand())
+                        using (var cmd = new OleDbCommand())
                         {
                             cmd.Connection = conn;
                             cmd.CommandText = @"INSERT INTO test_amex2 (pdate, o_id, acct_no, cname, bill_amt, tax, tot_amt, authcode, cno) 
@@ -49,7 +51,7 @@ namespace MISReports_Api.DAL
                         }
                     }
                 }
-                catch (OdbcException ex)
+                catch (OleDbException ex)
                 {
                     Console.WriteLine($"Error inserting into Amex2: {ex.Message}");
                     throw;
@@ -60,14 +62,14 @@ namespace MISReports_Api.DAL
 
         public void RefreshCrdTemp()
         {
-            using (var conn = new OdbcConnection(connectionString))
+            using (var conn = new OleDbConnection(connectionstring))
             {
                 try
                 {
                     conn.Open();
 
                     // Delete existing records from test_crdt_tmp
-                    using (var cmd = new OdbcCommand("DELETE FROM test_crdt_tmp", conn))
+                    using (var cmd = new OleDbCommand("DELETE FROM test_crdt_tmp", conn))
                     {
                         cmd.ExecuteNonQuery();
                     }
@@ -79,25 +81,26 @@ namespace MISReports_Api.DAL
                                               cno, 'Bil', acct_no, 'RSK', ''
                                        FROM test_amex2";
 
-                    using (var cmd = new OdbcCommand(insertSql, conn))
+                    using (var cmd = new OleDbCommand(insertSql, conn))
                     {
                         cmd.ExecuteNonQuery();
+
                     }
 
                     // Update null values for specific fields
-                    using (var cmd = new OdbcCommand(@"UPDATE test_crdt_tmp 
+                    using (var cmd = new OleDbCommand(@"UPDATE test_crdt_tmp 
                                                      SET updt_flag = NULL, post_flag = NULL, err_flag = NULL, sms_st = NULL", conn))
                     {
                         cmd.ExecuteNonQuery();
                     }
 
                     // Update payment_type where ref_number is longer than 10 characters  
-                    using (var cmd = new OdbcCommand(@"UPDATE test_crdt_tmp SET payment_type = 'PIV' WHERE LENGTH(ref_number) > 10", conn))
+                    using (var cmd = new OleDbCommand(@"UPDATE test_crdt_tmp SET payment_type = 'PIV' WHERE LENGTH(ref_number) > 10", conn))
                     {
                         cmd.ExecuteNonQuery();
                     }
                 }
-                catch (OdbcException ex)
+                catch (OleDbException ex)
                 {
                     Console.WriteLine($"Error refreshing CrdTemp: {ex.Message}");
                     throw;
@@ -108,45 +111,54 @@ namespace MISReports_Api.DAL
         public List<OUMCrdTempModel> GetCrdTempRecords()
         {
             var records = new List<OUMCrdTempModel>();
-            using (var conn = new OdbcConnection(connectionString))
+            using (var conn = new OleDbConnection(connectionstring))
             {
                 try
                 {
                     conn.Open();
                     string sql = "SELECT * FROM test_crdt_tmp ORDER BY auth_date";
 
-                    using (var cmd = new OdbcCommand(sql, conn))
-                    using (var reader = cmd.ExecuteReader())
+                    using (var cmd = new OleDbCommand(sql, conn))
+                    using (OleDbDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
                             var record = new OUMCrdTempModel
                             {
-                                OrderId = GetSafeInt(reader, "order_id"),
-                                AcctNumber = GetSafeString(reader, "acct_number"),
-                                CustName = GetSafeString(reader, "custname"),
-                                UserName = GetSafeString(reader, "username"),
-                                BillAmt = GetSafeDecimal(reader, "bill_amt"),
-                                TaxAmt = GetSafeDecimal(reader, "tax_amt"),
-                                TotAmt = GetSafeDecimal(reader, "tot_amt"),
-                                TrStatus = GetSafeString(reader, "trstatus"),
-                                AuthCode = GetSafeString(reader, "authcode"),
-                                PmntDate = GetSafeDateTime(reader, "pmnt_date"),
-                                AuthDate = GetSafeDateTime(reader, "auth_date"),
-                                CebRes = GetSafeString(reader, "cebres"),
-                                SerlNo = GetSafeInt(reader, "serl_no"),
-                                BankCode = GetSafeString(reader, "bank_code"),
-                                BranCode = GetSafeString(reader, "bran_code"),
-                                CardNo = GetSafeString(reader, "card_no"),
-                                PaymentType = GetSafeString(reader, "payment_type"),
-                                RefNumber = GetSafeString(reader, "ref_number"),
-                                ReferenceType = GetSafeString(reader, "reference_type")
+
+
+                                OrderId = reader.GetInt32(0),
+                                AcctNumber = reader.GetString(1),
+                                CustName = reader.GetString(2),
+                                UserName = reader.GetString(3),
+                                BillAmt = reader.GetDecimal(4),
+                                TaxAmt = reader.GetDecimal(5),
+                                TotAmt = reader.GetDecimal(6),
+                                TrStatus = reader.GetString(7),
+                                AuthCode = reader.GetString(8),
+                                PmntDate = reader.GetDateTime(9),
+                                AuthDate = reader.GetDateTime(10),
+                                CebRes = reader.GetString(11),
+                                SerlNo = reader.GetInt32(12),
+                                BankCode = reader.GetString(13),
+                                BranCode = reader.GetString(14),
+                                //inst_status = reader.GetString(15),
+                                // updt_status = reader.GetString(16),
+                                //updt_flag = reader.IsDBNull(17) ? null : reader.GetString(17),
+                                // post_flag = reader.IsDBNull(18) ? null : reader.GetString(18),
+                                // err_flag = reader.IsDBNull(19) ? null : reader.GetString(19),
+                                //post_date = reader.GetDateTime(20),
+                                CardNo = reader.GetString(21),
+                                PaymentType = reader.GetString(22),
+                                RefNumber = reader.GetString(23),
+                                ReferenceType = reader.GetString(24)
+                                // sms_st = reader.IsDBNull(25) ? null : reader.GetString(25)
                             };
                             records.Add(record);
                         }
                     }
                 }
-                catch (OdbcException ex)
+                catch (OleDbException ex)
                 {
                     Console.WriteLine($"Error retrieving CrdTemp records: {ex.Message}");
                     throw;
@@ -157,95 +169,53 @@ namespace MISReports_Api.DAL
 
         public bool ApproveRecords()
         {
-            using (var conn = new OdbcConnection(connectionString))
+
+            bool success = false;
+            using (var conn = new OleDbConnection(connectionstring))
             {
-                OdbcTransaction transaction = null;
+                OleDbTransaction transaction = null;
                 try
                 {
                     conn.Open();
                     transaction = conn.BeginTransaction();
 
+                    // Delete crdt_tmp records (this is for temporary)
+
+
+
+
                     // Insert into test_crdtcdslt
-                    using (var cmd = new OdbcCommand("INSERT INTO test_crdtcdslt SELECT * FROM test_crdt_tmp", conn, transaction))
+                    using (var cmd = new OleDbCommand("INSERT INTO test_crdtcdslt SELECT * FROM test_crdt_tmp", conn, transaction))
                     {
                         cmd.ExecuteNonQuery();
                     }
 
                     // Insert into backup table
-                    using (var cmd = new OdbcCommand("INSERT INTO appadm1.crdt_tmp_backup SELECT * FROM appadm1.test_crdt_tmp", conn, transaction))
+                    using (var cmd = new OleDbCommand("INSERT INTO crdt_tmp_backup SELECT * FROM test_crdt_tmp", conn, transaction))
                     {
                         cmd.ExecuteNonQuery();
                     }
 
                     // Delete from temp table
-                    using (var cmd = new OdbcCommand("DELETE FROM appadm1.test_crdt_tmp", conn, transaction))
+                    using (var cmd = new OleDbCommand("DELETE FROM test_crdt_tmp", conn, transaction))
                     {
                         cmd.ExecuteNonQuery();
                     }
 
                     transaction.Commit();
-                    return true;
+                    success = true;
+                    return success;
                 }
-                catch (OdbcException ex)
+                catch (OleDbException ex)
                 {
                     transaction?.Rollback();
-                    Console.WriteLine($"Error approving records: {ex.Message}");
-                    throw;
+                    return success;
+
                 }
             }
         }
 
-        // Helper methods for safe data conversion
-        private string GetSafeString(OdbcDataReader reader, string columnName)
-        {
-            try
-            {
-                int ordinal = reader.GetOrdinal(columnName);
-                return reader.IsDBNull(ordinal) ? null : reader.GetString(ordinal)?.Trim();
-            }
-            catch
-            {
-                return null;
-            }
-        }
 
-        private int GetSafeInt(OdbcDataReader reader, string columnName)
-        {
-            try
-            {
-                int ordinal = reader.GetOrdinal(columnName);
-                return reader.IsDBNull(ordinal) ? 0 : Convert.ToInt32(reader.GetValue(ordinal));
-            }
-            catch
-            {
-                return 0;
-            }
-        }
 
-        private decimal GetSafeDecimal(OdbcDataReader reader, string columnName)
-        {
-            try
-            {
-                int ordinal = reader.GetOrdinal(columnName);
-                return reader.IsDBNull(ordinal) ? 0m : Convert.ToDecimal(reader.GetValue(ordinal));
-            }
-            catch
-            {
-                return 0m;
-            }
-        }
-
-        private DateTime GetSafeDateTime(OdbcDataReader reader, string columnName)
-        {
-            try
-            {
-                int ordinal = reader.GetOrdinal(columnName);
-                return reader.IsDBNull(ordinal) ? DateTime.MinValue : Convert.ToDateTime(reader.GetValue(ordinal));
-            }
-            catch
-            {
-                return DateTime.MinValue;
-            }
-        }
     }
 }
