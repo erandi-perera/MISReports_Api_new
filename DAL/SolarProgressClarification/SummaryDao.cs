@@ -20,10 +20,10 @@ namespace MISReports_Api.DAL.SolarProgressClarification
             {
                 // Connection string verification
                 System.Diagnostics.Debug.WriteLine($"=== Testing Connection ===");
-                System.Diagnostics.Debug.WriteLine($"Connection String: {_dbConnection.ConnectionString}");
+                System.Diagnostics.Debug.WriteLine($"Connection String: {_dbConnection.BulkConnectionString}");
 
                 // Test if we can parse the connection string first
-                var builder = new OleDbConnectionStringBuilder(_dbConnection.ConnectionString);
+                var builder = new OleDbConnectionStringBuilder(_dbConnection.BulkConnectionString);
                 System.Diagnostics.Debug.WriteLine($"Data Source: {builder.DataSource}");
                 System.Diagnostics.Debug.WriteLine($"Provider: {builder.Provider}");
 

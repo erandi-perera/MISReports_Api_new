@@ -21,9 +21,9 @@ namespace MISReports_Api.DAL.SolarProgressClarification
             try
             {
                 logger.Debug("=== Testing Connection ===");
-                logger.Debug($"Connection String: {_dbConnection.ConnectionString}");
+                logger.Debug($"Connection String: {_dbConnection.BulkConnectionString}");
 
-                var builder = new OleDbConnectionStringBuilder(_dbConnection.ConnectionString);
+                var builder = new OleDbConnectionStringBuilder(_dbConnection.BulkConnectionString);
                 logger.Debug($"Data Source: {builder.DataSource}");
                 logger.Debug($"Provider: {builder.Provider}");
 
