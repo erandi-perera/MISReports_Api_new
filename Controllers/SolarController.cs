@@ -1,5 +1,8 @@
 ﻿using MISReports_Api.DAL.SolarProgressClarification;
+using MISReports_Api.DAL.SolarPVConnections;
 using MISReports_Api.DAL.Shared;
+using MISReports_Api.DBAccess;
+using System.Data.OleDb;
 using MISReports_Api.Models;
 using MISReports_Api.Models.SolarInformation;
 using Newtonsoft.Json.Linq;
@@ -9,15 +12,18 @@ using System.Web.Http;
 
 namespace MISReports_Api.Controllers
 {
-    [RoutePrefix("bulkapi")]
+    [RoutePrefix("solarapi")]
     public class SolarController : ApiController
     {
         private readonly AreasDao _areasDao = new AreasDao();
         private readonly ProvinceDao _provinceDao = new ProvinceDao();
         private readonly RegionDao _regionDao = new RegionDao();
         private readonly BillCycleDao _billCycleDao = new BillCycleDao();
+        private readonly PVBillCycleDao _pvBillCycleDao = new PVBillCycleDao();
         private readonly DetailedDao _detailedDao = new DetailedDao();
         private readonly SummaryDao _summaryDao = new SummaryDao();
+        private readonly PVConnectionDao _pvConnectionDao = new PVConnectionDao();
+        private readonly PVBulkConnectionDao _pvBulkConnectionDao = new PVBulkConnectionDao();
 
         [HttpGet]
         [Route("areas")]
@@ -131,6 +137,31 @@ namespace MISReports_Api.Controllers
             try
             {
                 var result = _billCycleDao.GetLast24BillCycles();
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = result,
+                    errorMessage = result.ErrorMessage
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get max bill cycle",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        [HttpGet]
+        [Route("bill-cycle")]
+        public IHttpActionResult GetPVBillCycle()
+        {
+            try
+            {
+                var result = _pvBillCycleDao.GetLast24BillCycles();
 
                 return Ok(JObject.FromObject(new
                 {
@@ -354,6 +385,278 @@ namespace MISReports_Api.Controllers
         }
 
         private string ValidateRequestParameters(SolarProgressRequest request)
+        {
+            switch (request.ReportType)
+            {
+                case SolarReportType.Area:
+                    if (string.IsNullOrEmpty(request.AreaCode))
+                        return "Area code is required for Area report type.";
+                    break;
+                case SolarReportType.Province:
+                    if (string.IsNullOrEmpty(request.ProvCode))
+                        return "Province code is required for Province report type.";
+                    break;
+                case SolarReportType.Region:
+                    if (string.IsNullOrEmpty(request.Region))
+                        return "Region is required for Region report type.";
+                    break;
+                case SolarReportType.EntireCEB:
+                    break;
+                default:
+                    return "Invalid report type specified.";
+            }
+
+            return null;
+        }
+
+        [HttpGet]
+        [Route("pv-connections")]
+        public IHttpActionResult GetPVConnections(
+            [FromUri] string billCycle = null,
+            [FromUri] string calcCycle = null,
+            [FromUri] string cycleType = "A", // A for bill_cycle, C for calc_cycle
+            [FromUri] string reportType = "entireceb",
+            [FromUri] string typeCode = null)
+        {
+            var validationErrors = new List<string>();
+
+            // Validate cycle parameters
+            if (cycleType == "A" && string.IsNullOrWhiteSpace(billCycle))
+                validationErrors.Add("Bill cycle is required when cycle type is 'A'.");
+
+            if (cycleType == "C" && string.IsNullOrWhiteSpace(calcCycle))
+                validationErrors.Add("Calc cycle is required when cycle type is 'C'.");
+
+            if (cycleType != "A" && cycleType != "C")
+                validationErrors.Add("Cycle type must be 'A' (bill cycle) or 'C' (calc cycle).");
+
+            if (validationErrors.Count > 0)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = string.Join("; ", validationErrors)
+                });
+            }
+
+            var request = new SolarPVConnectionRequest
+            {
+                BillCycle = billCycle,
+                CalcCycle = calcCycle,
+                CycleType = cycleType
+            };
+
+            switch (reportType.ToLower())
+            {
+                case "area":
+                    request.ReportType = SolarReportType.Area;
+                    request.AreaCode = typeCode;
+                    break;
+                case "province":
+                    request.ReportType = SolarReportType.Province;
+                    request.ProvCode = typeCode;
+                    break;
+                case "region":
+                    request.ReportType = SolarReportType.Region;
+                    request.Region = typeCode;
+                    break;
+                case "entireceb":
+                    request.ReportType = SolarReportType.EntireCEB;
+                    break;
+                default:
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Invalid report type.",
+                        errorDetails = "Valid types: Area, Province, Region, EntireCEB."
+                    });
+            }
+
+            return ProcessPVConnectionRequest(request);
+        }
+
+        [HttpGet]
+        [Route("pv-bulkconnections")]
+        public IHttpActionResult GetPVBulkConnections(
+            [FromUri] string billCycle = null,
+            [FromUri] string calcCycle = null,
+            [FromUri] string cycleType = "A", // A for bill_cycle, C for calc_cycle
+            [FromUri] string reportType = "entireceb",
+            [FromUri] string typeCode = null)
+        {
+            var validationErrors = new List<string>();
+
+            // Validate cycle parameters
+            if (cycleType == "A" && string.IsNullOrWhiteSpace(billCycle))
+                validationErrors.Add("Bill cycle is required when cycle type is 'A'.");
+
+            if (cycleType == "C" && string.IsNullOrWhiteSpace(calcCycle))
+                validationErrors.Add("Calc cycle is required when cycle type is 'C'.");
+
+            if (cycleType != "A" && cycleType != "C")
+                validationErrors.Add("Cycle type must be 'A' (bill cycle) or 'C' (calc cycle).");
+
+            if (validationErrors.Count > 0)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = string.Join("; ", validationErrors)
+                });
+            }
+
+            var request = new SolarPVBulkConnectionRequest
+            {
+                BillCycle = billCycle,
+                CalcCycle = calcCycle,
+                CycleType = cycleType
+            };
+
+            switch (reportType.ToLower())
+            {
+                case "area":
+                    request.ReportType = SolarReportType.Area;
+                    request.AreaCode = typeCode;
+                    break;
+                case "province":
+                    request.ReportType = SolarReportType.Province;
+                    request.ProvCode = typeCode;
+                    break;
+                case "region":
+                    request.ReportType = SolarReportType.Region;
+                    request.Region = typeCode;
+                    break;
+                case "entireceb":
+                    request.ReportType = SolarReportType.EntireCEB;
+                    break;
+                default:
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Invalid report type.",
+                        errorDetails = "Valid types: Area, Province, Region, EntireCEB."
+                    });
+            }
+
+            return ProcessPVBulkConnectionRequest(request);
+        }
+
+        private IHttpActionResult ProcessPVBulkConnectionRequest(SolarPVBulkConnectionRequest request)
+        {
+            try
+            {
+                if (!_pvConnectionDao.TestConnection(out string connError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    });
+                }
+
+                string typeValidationError = ValidatePVBulkConnectionParameters(request);
+                if (!string.IsNullOrEmpty(typeValidationError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = typeValidationError,
+                        errorDetails = "Invalid request parameters."
+                    });
+                }
+
+                var data = _pvBulkConnectionDao.GetPVConnections(request);
+
+                return Ok(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get PV connections data.",
+                    errorDetails = ex.Message
+                });
+            }
+        }
+
+        private string ValidatePVBulkConnectionParameters(SolarPVBulkConnectionRequest request)
+        {
+            switch (request.ReportType)
+            {
+                case SolarReportType.Area:
+                    if (string.IsNullOrEmpty(request.AreaCode))
+                        return "Area code is required for Area report type.";
+                    break;
+                case SolarReportType.Province:
+                    if (string.IsNullOrEmpty(request.ProvCode))
+                        return "Province code is required for Province report type.";
+                    break;
+                case SolarReportType.Region:
+                    if (string.IsNullOrEmpty(request.Region))
+                        return "Region is required for Region report type.";
+                    break;
+                case SolarReportType.EntireCEB:
+                    break;
+                default:
+                    return "Invalid report type specified.";
+            }
+
+            return null;
+        }
+
+
+
+        private IHttpActionResult ProcessPVConnectionRequest(SolarPVConnectionRequest request)
+        {
+            try
+            {
+                if (!_pvConnectionDao.TestConnection(out string connError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    });
+                }
+
+                string typeValidationError = ValidatePVConnectionParameters(request);
+                if (!string.IsNullOrEmpty(typeValidationError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = typeValidationError,
+                        errorDetails = "Invalid request parameters."
+                    });
+                }
+
+                var data = _pvConnectionDao.GetPVConnections(request);
+
+                return Ok(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get PV connections data.",
+                    errorDetails = ex.Message
+                });
+            }
+        }
+
+        private string ValidatePVConnectionParameters(SolarPVConnectionRequest request)
         {
             switch (request.ReportType)
             {

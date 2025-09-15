@@ -307,6 +307,9 @@
     <Compile Include="DAL\SolarProgressClarification\BillCycleDao.cs" />
     <Compile Include="DAL\SolarProgressClarification\DetailedDao.cs" />
     <Compile Include="DAL\SolarProgressClarification\SummaryDao.cs" />
+    <Compile Include="DAL\SolarPVConnections\PVBulkConnectionDao.cs" />
+    <Compile Include="DAL\SolarPVConnections\PVConnectionDao.cs" />
+    <Compile Include="DAL\SolarPVConnections\PVBillCycleDao.cs" />
     <Compile Include="DAL\TrialBalance\CompanyTrialBalanceRepository.cs" />
     <Compile Include="DAL\IncomeExpenditure\IncomeExpenditureRegionRepository.cs" />
     <Compile Include="DAL\IncomeExpenditure\IncomeExpenditureRepository.cs" />
@@ -331,6 +334,8 @@
     <Compile Include="Models\OUMModels.cs" />
     <Compile Include="Models\SolarInformation\AreaBulkModel.cs" />
     <Compile Include="Models\SolarInformation\BillCycleBulkModel.cs" />
+    <Compile Include="Models\SolarInformation\BulkConnectionModel.cs" />
+    <Compile Include="Models\SolarInformation\OrdinaryConnectionModel.cs" />
     <Compile Include="Models\SolarInformation\ProvinceBulkModel.cs" />
     <Compile Include="Models\SolarInformation\RegionBulkModel.cs" />
     <Compile Include="Models\SolarInformation\SolarProgressDetailedModel.cs" />
