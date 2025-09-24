@@ -73,7 +73,7 @@ namespace MISReports_Api.Controllers
             }
         }
 
-        // Get all stock balances for a given material code
+        // ✅ Get all stock balances for a given material code (uses new SQL)
         [HttpGet]
         [Route("stock-balances")]
         public IHttpActionResult GetMaterialStockBalances([FromUri] string matCd)
@@ -155,7 +155,7 @@ namespace MISReports_Api.Controllers
             }
         }
 
-        //  Get province-wise stock by material code
+        // Get province-wise stock by material code
         [HttpGet]
         [Route("stocks/by-matcd-province-wise/{matCd}")]
         public IHttpActionResult GetMaterialStocksByMatCdProvinceWise([FromUri] string matCd)
@@ -195,8 +195,5 @@ namespace MISReports_Api.Controllers
                 return Ok(JObject.Parse(JsonConvert.SerializeObject(errorResponse)));
             }
         }
-
-        
-        
     }
 }

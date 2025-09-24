@@ -84,7 +84,7 @@ namespace MISReports_Api.DAL
             return stocks;
         }
 
-        // Get material stock balances for a material code
+        // ✅ New SQL for material stock balances
         public List<MaterialStockBalance> GetMaterialStockBalances(string matCd)
         {
             var balances = new List<MaterialStockBalance>();
@@ -94,41 +94,42 @@ namespace MISReports_Api.DAL
                 conn.Open();
 
                 string sql = @"
-                    SELECT
-                        T1.MAT_CD,
-                        (SELECT CASE WHEN lvl_no = 60 THEN 'DD' || SUBSTR(parent_id,6,1)
-                                      ELSE 'DD' || SUBSTR(Grp_comp,6,1) END
-                         FROM glcompm
-                         WHERE comp_id IN (SELECT comp_id FROM gldeptm WHERE dept_id = T1.dept_id)) AS region,
-                        (SELECT CASE WHEN lvl_no = 60 THEN comp_id ELSE parent_id END
-                         FROM glcompm
-                         WHERE comp_id IN (SELECT comp_id FROM gldeptm WHERE dept_id = T1.dept_id)) AS province,
-                        (T1.dept_id || ' - ' || (SELECT dept_nm FROM gldeptm WHERE dept_id = T1.dept_id)) AS dept_id,
-                        T2.MAT_NM,
-                        T2.unit_price,
-                        SUM(T1.QTY_ON_HAND) AS QTY_ON_HAND,
-                        T3.reord_qty AS reorder_qty,
-                        T1.UOM_CD
-                    FROM INMATM T2, inwhmtdm T3, INWRHMTM T1
-                    WHERE T2.MAT_CD = T1.MAT_CD
-                      AND T1.dept_id = T3.dept_id
-                      AND T1.wrh_cd = T3.wrh_cd
-                      AND T1.mat_cd = T3.mat_cd
-                      AND T1.grade_cd = T3.grade_cd
-                      AND T1.dept_id IN (
-                          SELECT dept_id
-                          FROM gldeptm
-                          WHERE comp_id IN (
-                              SELECT comp_id FROM glcompm
-                              WHERE status = 2
-                                AND (parent_id LIKE 'DISCO%' OR Grp_comp LIKE 'DISCO%' OR comp_id LIKE 'DISCO%')
-                          )
-                      )
-                      AND UPPER(TRIM(T1.mat_cd)) = :matCd
-                      AND T1.GRADE_CD = 'NEW'
-                      AND T1.status = 2
-                    GROUP BY T1.MAT_CD, T2.MAT_NM, T1.UOM_CD, T1.dept_id, T2.unit_price, T3.reord_qty
-                    ORDER BY 1, 2, 3, 4";
+            SELECT
+                T1.MAT_CD,
+                (SELECT CASE WHEN lvl_no = 60 THEN 'DD' || SUBSTR(parent_id,6,1)
+                              ELSE 'DD' || SUBSTR(Grp_comp,6,1) END
+                 FROM glcompm
+                 WHERE comp_id IN (SELECT comp_id FROM gldeptm WHERE dept_id = T1.dept_id)) AS region,
+                (SELECT CASE WHEN lvl_no = 60 THEN comp_id ELSE parent_id END
+                 FROM glcompm
+                 WHERE comp_id IN (SELECT comp_id FROM gldeptm WHERE dept_id = T1.dept_id)) AS province,
+                (T1.dept_id || ' - ' || (SELECT dept_nm FROM gldeptm WHERE dept_id = T1.dept_id)) AS dept_id,
+                T2.MAT_NM,
+                T2.unit_price,
+                SUM(T1.QTY_ON_HAND) AS QTY_ON_HAND,
+                T3.reord_qty AS reorder_qty,
+                T1.UOM_CD
+            FROM INMATM T2, (INWRHMTM T1
+                LEFT OUTER JOIN inwhmtdm T3 ON T1.dept_id = T3.dept_id
+                    AND T1.wrh_cd = T3.wrh_cd
+                    AND T1.mat_cd = T3.mat_cd
+                    AND T1.grade_cd = T3.grade_cd)
+            WHERE T2.MAT_CD = T1.MAT_CD
+                AND T1.dept_id IN (
+                    SELECT dept_id
+                    FROM gldeptm
+                    WHERE comp_id IN (
+                        SELECT comp_id FROM glcompm
+                        WHERE status = 2
+                            AND (parent_id LIKE 'DISCO%' OR Grp_comp LIKE 'DISCO%' OR comp_id LIKE 'DISCO%')
+                    )
+                )
+                AND UPPER(TRIM(T1.mat_cd)) = :matCd
+                AND T1.GRADE_CD = 'NEW'
+                AND T1.status = 2
+                AND T1.QTY_ON_HAND > 0
+            GROUP BY T1.MAT_CD, T2.MAT_NM, T1.UOM_CD, T1.dept_id, T2.unit_price, T3.reord_qty
+            ORDER BY 1, 2, 3, 4";
 
                 using (var cmd = new OracleCommand(sql, conn))
                 {
@@ -146,7 +147,8 @@ namespace MISReports_Api.DAL
                                 DeptId = reader["dept_id"]?.ToString().Trim(),
                                 MatNm = reader["MAT_NM"]?.ToString().Trim(),
                                 UnitPrice = reader["unit_price"] != DBNull.Value ? Convert.ToDecimal(reader["unit_price"]) : 0,
-                                CommittedCost = reader["QTY_ON_HAND"] != DBNull.Value ? Convert.ToDecimal(reader["QTY_ON_HAND"]) : 0,
+                                QtyOnHand = reader["QTY_ON_HAND"] != DBNull.Value ? Convert.ToDecimal(reader["QTY_ON_HAND"]) : 0,
+                                ReorderQty = reader["reorder_qty"] != DBNull.Value ? Convert.ToDecimal(reader["reorder_qty"]) : 0,
                                 UomCd = reader["UOM_CD"]?.ToString().Trim()
                             });
                         }
@@ -254,7 +256,5 @@ namespace MISReports_Api.DAL
 
             return stocks;
         }
-
-       
     }
 }
