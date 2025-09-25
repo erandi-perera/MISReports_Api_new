@@ -9,14 +9,14 @@
         public string AccountNumber { get; set; }
         public string CustomerType { get; set; }
         public decimal PanelCapacity { get; set; }
-        public decimal BFUnits { get; set; }
-        public decimal EnergyExported { get; set; }
-        public decimal EnergyImported { get; set; }
-        public decimal CFUnits { get; set; }
+        public int BFUnits { get; set; }
+        public int EnergyExported { get; set; }
+        public int EnergyImported { get; set; }
+        public int CFUnits { get; set; }
         public string SinNumber { get; set; }
         public string Tariff { get; set; }
         public string AgreementDate { get; set; }
-        public decimal UnitsForLossReduction { get; set; }
+        public int UnitsForLossReduction { get; set; }
         public string ErrorMessage { get; set; }
     }
 
@@ -37,4 +37,5 @@
         public string CalcCycle { get; set; }
         public string ErrorMessage { get; set; }
     }
+
 }
