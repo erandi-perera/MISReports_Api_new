@@ -4,6 +4,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Data.OleDb;
+using System.Linq;
 
 namespace MISReports_Api.DAL.SolarPVConnections
 {
@@ -42,11 +43,19 @@ namespace MISReports_Api.DAL.SolarPVConnections
 
                         using (var reader = cmd.ExecuteReader())
                         {
+                            // First, collect all records and account numbers
+                            var tempResults = new List<SolarPVBulkConnectionModel>();
+                            var accountNumbers = new List<string>();
+
                             while (reader.Read())
                             {
                                 var pvConnection = MapPVConnectionFromReader(reader);
-                                results.Add(pvConnection);
+                                tempResults.Add(pvConnection);
+                                accountNumbers.Add(pvConnection.AccountNumber);
                             }
+
+                            // Bulk fetch all additional data
+                            results = BulkEnrichPVConnectionData(accountNumbers, tempResults);
                         }
                     }
                 }
@@ -63,86 +72,71 @@ namespace MISReports_Api.DAL.SolarPVConnections
 
         private string BuildPVBulkConnectionQuery(SolarPVBulkConnectionRequest request)
         {
-            // Use calc_cycle if requested, otherwise bill_cycle
-            string cycleField = request.CycleType == "A" ? "n.bill_cycle" : "n.bill_cycle";
-            string prnCycleField = "n.bill_cycle"; // keeping reference aligned with first example
+            // The cycle value is always bill_cycle regardless of CycleType (as per your SQL examples)
+            string cycleValue = request.CycleType == "A" ? request.BillCycle : request.CalcCycle;
 
-            string baseQuery = @"
-        SELECT 
-            n.acc_nbr,
-            n.net_type,
-            n.imp_kwo_units,
-            n.imp_kwd_units,
-            n.imp_kwp_units,
-            n.exp_kwo_units,
-            n.exp_kwd_units,
-            n.exp_kwp_units,
-            n.bill_kwo_units,
-            n.bill_kwd_units,
-            n.bill_kwp_units,
-            n.gen_cap,
-            n.tariff,
-            n.cf_units,
-            n.bf_units,
-            e.agrmnt_date,
-            c.name,
-            i.dp_code,
-            i.cnnct_trpnl,
-            i.inst_id,
-            a.area_name,
-            a.region,
-            p.prov_name
-        FROM netmtcons n
-        JOIN netmeter e ON n.acc_nbr = e.acc_nbr
-        JOIN customer c ON n.acc_nbr = c.acc_nbr
-        JOIN inst_info i ON c.inst_id = i.inst_id
-        JOIN areas a ON a.area_code = n.area_cd
-        JOIN provinces p ON a.prov_code = p.prov_code
-        WHERE 1=1";
+            string baseQuery = "";
 
-            // Cycle condition
-            baseQuery += " AND " + cycleField + " = ?";
-
-            // Add condition for prnCycle (still bill_cycle in this schema)
-            baseQuery += " AND " + prnCycleField + " = ?";
-
-            // Report type specific filters
+            // Build query based on report type
             switch (request.ReportType)
             {
                 case SolarReportType.Area:
-                    baseQuery += " AND n.area_cd = ?";
-                    baseQuery += " ORDER BY n.acc_nbr";
+                    baseQuery = @"
+                        SELECT * 
+                        FROM netmtcons n, customer c, inst_info i 
+                        WHERE n.acc_nbr = c.acc_nbr 
+                        AND c.inst_id = i.inst_id 
+                        AND n.bill_cycle = ? 
+                        AND n.area_cd = ? 
+                        ORDER BY n.acc_nbr";
                     break;
 
                 case SolarReportType.Province:
-                    baseQuery += " AND p.prov_code = ?";
-                    baseQuery += " ORDER BY n.acc_nbr";
+                    baseQuery = @"
+                        SELECT * 
+                        FROM netmtcons n, customer c, inst_info i, areas a 
+                        WHERE n.acc_nbr = c.acc_nbr 
+                        AND c.inst_id = i.inst_id 
+                        AND n.bill_cycle = ? 
+                        AND a.prov_code = ? 
+                        AND a.area_code = n.area_cd 
+                        ORDER BY n.acc_nbr";
                     break;
 
                 case SolarReportType.Region:
-                    baseQuery += " AND a.region = ?";
-                    baseQuery += " ORDER BY n.acc_nbr";
+                    baseQuery = @"
+                        SELECT * 
+                        FROM netmtcons n, customer c, inst_info i, areas a 
+                        WHERE n.acc_nbr = c.acc_nbr 
+                        AND c.inst_id = i.inst_id 
+                        AND n.bill_cycle = ? 
+                        AND a.region = ? 
+                        AND a.area_code = n.area_cd 
+                        ORDER BY n.acc_nbr";
                     break;
 
                 case SolarReportType.EntireCEB:
                 default:
-                    baseQuery += " ORDER BY a.region, p.prov_name, a.area_name, n.acc_nbr";
+                    baseQuery = @"
+                        SELECT * 
+                        FROM netmtcons n, customer c, inst_info i, areas a 
+                        WHERE n.acc_nbr = c.acc_nbr 
+                        AND c.inst_id = i.inst_id 
+                        AND n.bill_cycle = ? 
+                        AND a.area_code = n.area_cd 
+                        ORDER BY n.acc_nbr";
                     break;
             }
 
             return baseQuery;
         }
 
-
-
-
         private void AddParameters(OleDbCommand cmd, SolarPVBulkConnectionRequest request)
         {
             string cycleValue = request.CycleType == "A" ? request.BillCycle : request.CalcCycle;
 
-            // Add cycle parameters
-            cmd.Parameters.AddWithValue("@cycle1", cycleValue);
-            cmd.Parameters.AddWithValue("@cycle2", cycleValue);
+            // Add cycle parameter (always first parameter)
+            cmd.Parameters.AddWithValue("@cycle", cycleValue);
 
             // Add specific filters based on report type
             switch (request.ReportType)
@@ -165,7 +159,238 @@ namespace MISReports_Api.DAL.SolarPVConnections
                         cmd.Parameters.AddWithValue("@region", request.Region);
                     }
                     break;
+                case SolarReportType.EntireCEB:
+                    // No additional parameters needed
+                    break;
             }
+        }
+
+        private List<SolarPVBulkConnectionModel> BulkEnrichPVConnectionData(List<string> accountNumbers, List<SolarPVBulkConnectionModel> models)
+        {
+            try
+            {
+                if (!accountNumbers.Any())
+                    return models;
+
+                // Bulk get agreement dates
+                var agreementDates = BulkGetAgreementDates(accountNumbers);
+
+                // Bulk get province/region data
+                var areaData = BulkGetAreaData(accountNumbers);
+
+                // Enrich all models in memory
+                foreach (var model in models)
+                {
+                    if (agreementDates.TryGetValue(model.AccountNumber, out var agreementDate))
+                    {
+                        model.AgreementDate = agreementDate;
+                    }
+
+                    if (areaData.TryGetValue(model.AccountNumber, out var areaInfo))
+                    {
+                        if (string.IsNullOrEmpty(model.Province)) model.Province = areaInfo.Province;
+                        if (string.IsNullOrEmpty(model.Division)) model.Division = areaInfo.Division;
+                        if (string.IsNullOrEmpty(model.Area)) model.Area = areaInfo.AreaName;
+                    }
+                }
+
+                return models;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error in bulk data enrichment");
+                return models; // Return original data if enrichment fails
+            }
+        }
+
+        private Dictionary<string, string> BulkGetAgreementDates(List<string> accountNumbers)
+        {
+            var results = new Dictionary<string, string>();
+
+            if (!accountNumbers.Any())
+                return results;
+
+            try
+            {
+                // Create parameter placeholders for IN clause
+                var parameters = accountNumbers.Select((_, index) => "?").ToArray();
+                string sql = $"SELECT acc_nbr, agrmnt_date FROM netmeter WHERE acc_nbr IN ({string.Join(",", parameters)})";
+
+                using (var conn = _dbConnection.GetConnection(true))
+                {
+                    conn.Open();
+
+                    using (var cmd = new OleDbCommand(sql, conn))
+                    {
+                        // Add all account numbers as parameters
+                        for (int i = 0; i < accountNumbers.Count; i++)
+                        {
+                            cmd.Parameters.AddWithValue($"@accNbr{i}", accountNumbers[i]);
+                        }
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var accNbr = GetColumnValue(reader, "acc_nbr");
+                                var agreementDateStr = GetColumnValue(reader, "agrmnt_date");
+
+                                if (!string.IsNullOrEmpty(accNbr))
+                                {
+                                    if (DateTime.TryParse(agreementDateStr, out var agreementDate))
+                                    {
+                                        results[accNbr] = agreementDate.ToString("yyyy-MM-dd");
+                                    }
+                                    else
+                                    {
+                                        results[accNbr] = agreementDateStr;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error in bulk agreement dates fetch");
+            }
+
+            return results;
+        }
+
+        private Dictionary<string, (string Province, string Division, string AreaName)> BulkGetAreaData(List<string> accountNumbers)
+        {
+            var results = new Dictionary<string, (string, string, string)>();
+
+            if (!accountNumbers.Any())
+                return results;
+
+            try
+            {
+                // First get area codes for all accounts
+                var accountAreaCodes = BulkGetAreaCodesForAccounts(accountNumbers);
+
+                if (!accountAreaCodes.Any())
+                    return results;
+
+                // Then get area details for all unique area codes
+                var uniqueAreaCodes = accountAreaCodes.Values.Distinct().Where(ac => !string.IsNullOrEmpty(ac)).ToList();
+
+                if (!uniqueAreaCodes.Any())
+                    return results;
+
+                var areaDetails = BulkGetAreaDetails(uniqueAreaCodes);
+
+                // Map back to accounts
+                foreach (var account in accountAreaCodes)
+                {
+                    if (areaDetails.TryGetValue(account.Value, out var details))
+                    {
+                        results[account.Key] = details;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error in bulk area data fetch");
+            }
+
+            return results;
+        }
+
+        private Dictionary<string, string> BulkGetAreaCodesForAccounts(List<string> accountNumbers)
+        {
+            var results = new Dictionary<string, string>();
+
+            try
+            {
+                var parameters = accountNumbers.Select((_, index) => "?").ToArray();
+                string sql = $"SELECT acc_nbr, area_cd FROM netmtcons WHERE acc_nbr IN ({string.Join(",", parameters)})";
+
+                using (var conn = _dbConnection.GetConnection(true))
+                {
+                    conn.Open();
+
+                    using (var cmd = new OleDbCommand(sql, conn))
+                    {
+                        for (int i = 0; i < accountNumbers.Count; i++)
+                        {
+                            cmd.Parameters.AddWithValue($"@accNbr{i}", accountNumbers[i]);
+                        }
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var accNbr = GetColumnValue(reader, "acc_nbr");
+                                var areaCode = GetColumnValue(reader, "area_cd");
+
+                                if (!string.IsNullOrEmpty(accNbr))
+                                {
+                                    results[accNbr] = areaCode;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error in bulk area codes fetch");
+            }
+
+            return results;
+        }
+
+        private Dictionary<string, (string Province, string Division, string AreaName)> BulkGetAreaDetails(List<string> areaCodes)
+        {
+            var results = new Dictionary<string, (string, string, string)>();
+
+            try
+            {
+                var parameters = areaCodes.Select((_, index) => "?").ToArray();
+                string sql = $@"
+                    SELECT a.area_code, p.prov_name, a.region, a.area_name 
+                    FROM areas a 
+                    LEFT JOIN provinces p ON a.prov_code = p.prov_code 
+                    WHERE a.area_code IN ({string.Join(",", parameters)})";
+
+                using (var conn = _dbConnection.GetConnection(true))
+                {
+                    conn.Open();
+
+                    using (var cmd = new OleDbCommand(sql, conn))
+                    {
+                        for (int i = 0; i < areaCodes.Count; i++)
+                        {
+                            cmd.Parameters.AddWithValue($"@areaCode{i}", areaCodes[i]);
+                        }
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var areaCode = GetColumnValue(reader, "area_code");
+                                var provName = GetColumnValue(reader, "prov_name");
+                                var region = GetColumnValue(reader, "region");
+                                var areaName = GetColumnValue(reader, "area_name");
+
+                                if (!string.IsNullOrEmpty(areaCode))
+                                {
+                                    results[areaCode] = (provName, region, areaName);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Error in bulk area details fetch");
+            }
+
+            return results;
         }
 
         private SolarPVBulkConnectionModel MapPVConnectionFromReader(OleDbDataReader reader)
@@ -175,30 +400,38 @@ namespace MISReports_Api.DAL.SolarPVConnections
             try
             {
                 model.AccountNumber = GetColumnValue(reader, "acc_nbr");
+
+                // Try to get area name, fallback to area code if not available
                 model.Area = GetColumnValue(reader, "area_name");
+
+                // Province and Division might be available depending on the query
                 model.Province = GetColumnValue(reader, "prov_name");
                 model.Division = GetColumnValue(reader, "region");
-                model.PanelCapacity = GetDecimalValue(reader, "gen_cap");
-                model.EnergyExported = GetDecimalValue(reader, "exp_kwo_units");
-                model.EnergyImported = GetDecimalValue(reader, "imp_kwo_units");
-                model.Tariff = GetColumnValue(reader, "tariff");
-                model.AgreementDate = GetColumnValue(reader, "agrmnt_date");
-                model.SinNumber = GetColumnValue(reader, "dp_code") ?? GetColumnValue(reader, "cnnct_trpnl");
 
-                // Single "name" field from customer table
+                model.PanelCapacity = GetDecimalValue(reader, "gen_cap");
+                model.EnergyExported = GetIntValue(reader, "exp_kwd_units");
+                model.EnergyImported =
+    GetIntValue(reader, "imp_kwo_units") +
+    GetIntValue(reader, "imp_kwd_units") +
+    GetIntValue(reader, "imp_kwp_units");
+
+                model.Tariff = GetColumnValue(reader, "tariff");
+
+                // Customer name from customer table
                 model.CustomerName = GetColumnValue(reader, "name");
 
-                // Institution info
-                //model.InstitutionName = GetColumnValue(reader, "inst_name");
-                //model.InstitutionId = GetColumnValue(reader, "inst_id");
-
-                // Customer type
+                // Customer type from net_type
                 string netType = GetColumnValue(reader, "net_type");
                 model.CustomerType = MapNetTypeToCustomerType(netType);
 
                 // B/F and C/F units
-                model.BFUnits = GetColumnValue(reader, "bf_units");
-                model.CFUnits = GetColumnValue(reader, "cf_units");
+                model.BFUnits = GetIntValue(reader, "bf_units");
+                model.CFUnits = GetIntValue(reader, "cf_units");
+
+                // SIN Number construction
+                var depot = GetColumnValue(reader, "dp_code") ?? string.Empty;
+                var substn = GetColumnValue(reader, "cnnct_trpnl") ?? string.Empty;
+                model.SinNumber = depot + substn;
 
                 model.ErrorMessage = string.Empty;
             }
@@ -210,7 +443,6 @@ namespace MISReports_Api.DAL.SolarPVConnections
 
             return model;
         }
-
 
         private string MapNetTypeToCustomerType(string netType)
         {
@@ -232,7 +464,6 @@ namespace MISReports_Api.DAL.SolarPVConnections
                 default:
                     return "Unknown";
             }
-
         }
 
         // Helper methods
@@ -247,6 +478,25 @@ namespace MISReports_Api.DAL.SolarPVConnections
             {
                 logger.Warn($"Column '{columnName}' not found in result set");
                 return null;
+            }
+        }
+
+        private int GetIntValue(OleDbDataReader reader, string columnName)
+        {
+            try
+            {
+                var value = reader[columnName];
+                return value == DBNull.Value ? 0 : Convert.ToInt32(value);
+            }
+            catch (IndexOutOfRangeException)
+            {
+                logger.Warn($"Column '{columnName}' not found in result set");
+                return 0;
+            }
+            catch (FormatException ex)
+            {
+                logger.Warn(ex, $"Invalid int format in column '{columnName}'");
+                return 0;
             }
         }
 

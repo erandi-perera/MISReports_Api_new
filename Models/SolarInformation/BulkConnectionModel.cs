@@ -9,10 +9,10 @@
         public string AccountNumber { get; set; }
         public string CustomerType { get; set; }
         public decimal PanelCapacity { get; set; }
-        public string BFUnits { get; set; }
-        public decimal EnergyExported { get; set; }
-        public decimal EnergyImported { get; set; }
-        public string CFUnits { get; set; }
+        public int BFUnits { get; set; }
+        public int EnergyExported { get; set; }
+        public int EnergyImported { get; set; }
+        public int CFUnits { get; set; }
         public string SinNumber { get; set; }
         public string Tariff { get; set; }
         public string AgreementDate { get; set; }
