@@ -15,7 +15,7 @@ namespace MISReports_Api.DAL
             var resultList = new List<ProjectCommitmentSummaryModel>();
             Exception lastException = null;
 
-            string[] connectionStringNames = { "Darcon16Oracle", "DefaultOracle", "HQOracle" };
+            string[] connectionStringNames = { "HQOracle" };
 
             foreach (var connectionStringName in connectionStringNames)
             {

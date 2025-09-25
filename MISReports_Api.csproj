@@ -295,7 +295,7 @@
     <Compile Include="Controllers\Inventory\WarehouseController.cs" />
     <Compile Include="Controllers\WorkInProgController\ProjectAgeAnalysisController.cs" />
     <Compile Include="Controllers\WorkInProgController\ProjectCommitmentSummaryController.cs" />
-    <Compile Include="Controllers\WorkInProgController\ProvinceWIPController.cs" />
+    <Compile Include="Controllers\WorkInProgController\WorkInProgressCompletedCostCenterwiseController.cs" />
     <Compile Include="DAL\Inventory\InventoryOnHandRepository.cs" />
     <Compile Include="DAL\WorkInProgRepo\CostCenterWorkInProgressRepository.cs" />
     <Compile Include="DAL\Debtors\AreasRepository.cs" />
@@ -325,7 +325,7 @@
     <Compile Include="DAL\Inventory\WarehouseRepository.cs" />
     <Compile Include="DAL\WorkInProgRepo\ProjectAgeAnalysisRepository.cs" />
     <Compile Include="DAL\WorkInProgRepo\ProjectCommitmentSummaryRepository.cs" />
-    <Compile Include="DAL\WorkInProgRepo\ProvinceWIPRepository.cs" />
+    <Compile Include="DAL\WorkInProgRepo\WorkInProgressCompletedCostCenterwiseRepository.cs" />
     <Compile Include="DBAccess\DBConnection.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -361,7 +361,7 @@
     <Compile Include="Models\WorkInProgress\CostCenterWorkInProgressModel.cs" />
     <Compile Include="Models\WorkInProgress\ProjectAgeAnalysisModel.cs" />
     <Compile Include="Models\WorkInProgress\ProjectCommitmentSummaryModel.cs" />
-    <Compile Include="Models\WorkInProgress\WorkInProgressProvinceModel.cs" />
+    <Compile Include="Models\WorkInProgress\WorkInProgressCompletedCostCenterwisemodel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

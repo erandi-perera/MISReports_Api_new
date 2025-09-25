@@ -10,12 +10,12 @@ namespace MISReports_Api.DAL
 {
     public class InventoryOnHandRepository
     {
-        public async Task<List<InventoryOnHandModel>> GetInventoryOnHand(string deptId)
+        public async Task<List<InventoryOnHandModel>> GetInventoryOnHand(string deptId, string matCode = null)
         {
             var resultList = new List<InventoryOnHandModel>();
             Exception lastException = null;
 
-            Debug.WriteLine($"GetInventoryOnHand started for deptId: {deptId}");
+            Debug.WriteLine($"GetInventoryOnHand started for deptId: {deptId}, matCode: {matCode}");
 
             string[] connectionStringNames = { "Darcon16Oracle", "DefaultOracle", "HQOracle" };
 
@@ -31,28 +31,39 @@ namespace MISReports_Api.DAL
                         await conn.OpenAsync();
 
                         string sql = @"
-                            SELECT  A.mat_cd AS MAT_CD,
-                                    D.mat_nm AS MAT_NM,
-                                    A.grade_cd AS GRD_CD,
-                                    D.maj_uom AS MAJ_UOM,
-                                    A.qty_alocatd as ALOCATED,
-                                    SUM(A.qty_on_hand) AS QTY_ON_HAND,
-                                    A.unit_price AS UNIT_PRICE,
-                                    SUM(A.unit_price * A.qty_on_hand) AS VALUE,
-                                    (SELECT dept_nm FROM gldeptm WHERE dept_id = :deptId) AS CCT_NAME
-                            FROM inwrhmtm A
-                            INNER JOIN inmatm D ON A.mat_cd = D.mat_cd
-                            WHERE A.dept_id = :deptId 
-                                AND A.mat_cd LIKE '%'
-                                AND A.status IN (2,7)
-                            GROUP BY A.mat_cd, A.wrh_cd, D.mat_nm, A.grade_cd, D.maj_uom, 
-                                     A.qty_on_hand, A.unit_price, A.mat_cost, A.qty_alocatd
-                            ORDER BY A.mat_cd, A.wrh_cd";
+SELECT 
+    A.mat_cd       AS MAT_CD,
+    D.mat_nm       AS MAT_NM,
+    A.grade_cd     AS GRD_CD,
+    D.maj_uom      AS MAJ_UOM,
+    SUM(A.qty_alocatd) AS ALLOCATED,
+    SUM(A.qty_on_hand) AS QTY_ON_HAND,
+    A.unit_price       AS UNIT_PRICE,
+    SUM(A.unit_price * A.qty_on_hand) AS VALUE,
+    (SELECT dept_nm FROM gldeptm WHERE dept_id = :deptId) AS CCT_NAME
+FROM 
+    inwrhmtm A
+INNER JOIN 
+    inmatm D 
+    ON A.mat_cd = D.mat_cd
+WHERE 
+    A.dept_id = :deptId
+    AND (:matCode IS NULL OR :matCode = '' OR A.mat_cd LIKE :matCode || '%')
+    AND A.status IN (2, 7)
+GROUP BY 
+    A.mat_cd, 
+    D.mat_nm, 
+    A.grade_cd, 
+    D.maj_uom, 
+    A.unit_price
+ORDER BY 
+    A.mat_cd";
 
                         using (var cmd = new OracleCommand(sql, conn))
                         {
                             cmd.BindByName = true;
                             cmd.Parameters.Add("deptId", deptId);
+                            cmd.Parameters.Add("matCode", string.IsNullOrEmpty(matCode) ? DBNull.Value : (object)matCode);
 
                             using (var reader = await cmd.ExecuteReaderAsync())
                             {
@@ -64,7 +75,7 @@ namespace MISReports_Api.DAL
                                         MatNm = SafeGetString(reader, "MAT_NM"),
                                         GrdCd = SafeGetString(reader, "GRD_CD"),
                                         MajUom = SafeGetString(reader, "MAJ_UOM"),
-                                        Alocated = SafeGetDecimal(reader, "ALOCATED"),
+                                        Alocated = SafeGetDecimal(reader, "ALLOCATED"),
                                         QtyOnHand = SafeGetDecimal(reader, "QTY_ON_HAND"),
                                         UnitPrice = SafeGetDecimal(reader, "UNIT_PRICE"),
                                         Value = SafeGetDecimal(reader, "VALUE"),
@@ -73,6 +84,7 @@ namespace MISReports_Api.DAL
                                 }
                             }
                         }
+
                         return resultList;
                     }
                 }
@@ -105,16 +117,6 @@ namespace MISReports_Api.DAL
             {
                 int idx = reader.GetOrdinal(columnName);
                 return reader.IsDBNull(idx) ? 0 : reader.GetDecimal(idx);
-            }
-            catch { return 0; }
-        }
-
-        private int SafeGetInt(OracleDataReader reader, string columnName)
-        {
-            try
-            {
-                int idx = reader.GetOrdinal(columnName);
-                return reader.IsDBNull(idx) ? 0 : Convert.ToInt32(reader.GetValue(idx));
             }
             catch { return 0; }
         }

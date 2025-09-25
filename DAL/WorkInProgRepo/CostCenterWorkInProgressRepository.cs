@@ -18,7 +18,7 @@ namespace MISReports_Api.DAL
             Debug.WriteLine($"GetCostCenterWorkInProgress method started for deptId: {deptId}");
 
             // Try each connection string in order
-            string[] connectionStringNames = { "Darcon16Oracle", "DefaultOracle", "HQOracle" };
+            string[] connectionStringNames = { "Darcon16Oracle" };
 
             foreach (var connectionStringName in connectionStringNames)
             {

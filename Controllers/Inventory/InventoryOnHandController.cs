@@ -15,13 +15,13 @@ namespace MISReports_Api.Controllers
 
         [HttpGet]
         [Route("{deptId}")]
-        public async Task<IHttpActionResult> GetInventoryOnHand(string deptId)
+        public async Task<IHttpActionResult> GetInventoryOnHand(string deptId, string matCode = null)
         {
-            Debug.WriteLine($"API Request received for InventoryOnHand deptId: {deptId}");
+            Debug.WriteLine($"API Request received for InventoryOnHand deptId: {deptId}, matCode: {matCode}");
 
             try
             {
-                var result = await _repository.GetInventoryOnHand(deptId.Trim());
+                var result = await _repository.GetInventoryOnHand(deptId.Trim(), matCode?.Trim());
 
                 var response = new
                 {

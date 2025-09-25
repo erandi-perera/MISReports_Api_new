@@ -17,7 +17,7 @@ namespace MISReports_Api.DAL
 
             Debug.WriteLine($"GetProjectAgeAnalysis started for deptId: {deptId}");
 
-            string[] connectionStringNames = { "Darcon16Oracle", "DefaultOracle", "HQOracle" };
+            string[] connectionStringNames = { "Darcon16Oracle" };
 
             foreach (var connectionStringName in connectionStringNames)
             {
