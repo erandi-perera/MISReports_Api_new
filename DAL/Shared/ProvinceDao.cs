@@ -1,4 +1,4 @@
-﻿using MISReports_Api.Models.SolarInformation;
+﻿using MISReports_Api.Models.Shared;
 using MISReports_Api.DBAccess;
 using System;
 using System.Collections.Generic;
@@ -15,9 +15,9 @@ namespace MISReports_Api.DAL.Shared
             return _dbConnection.TestConnection(out errorMessage);
         }
 
-        public List<ProvinceBulkModel> GetProvince()
+        public List<ProvinceModel> GetProvince()
         {
-            var provinceList = new List<ProvinceBulkModel>();
+            var provinceList = new List<ProvinceModel>();
 
             using (var conn = _dbConnection.GetConnection())
             {
@@ -32,7 +32,7 @@ namespace MISReports_Api.DAL.Shared
                     {
                         while (reader.Read())
                         {
-                            var province = new ProvinceBulkModel
+                            var province = new ProvinceModel
                             {
                                 ProvinceCode = reader[0]?.ToString().Trim(),
                                 ProvinceName = reader[1]?.ToString().Trim()

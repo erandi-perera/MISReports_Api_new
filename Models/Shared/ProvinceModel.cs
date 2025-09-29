@@ -1,6 +1,6 @@
-﻿namespace MISReports_Api.Models.SolarInformation
+﻿namespace MISReports_Api.Models.Shared
 {
-    public class ProvinceBulkModel
+    public class ProvinceModel
     {
         public string ProvinceCode { get; set; }
         public string ProvinceName { get; set; }

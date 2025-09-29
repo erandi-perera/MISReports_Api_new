@@ -6,7 +6,7 @@ using System.Data.OleDb;
 
 namespace MISReports_Api.DAL.Shared
 {
-    public class RegionDao
+    public class RegionOrdinaryDao
     {
         private readonly DBConnection _dbConnection = new DBConnection();
 
@@ -19,7 +19,7 @@ namespace MISReports_Api.DAL.Shared
         {
             var regionList = new List<RegionModel>();
 
-            using (var conn = _dbConnection.GetConnection())
+            using (var conn = _dbConnection.GetConnection(false))
             {
                 try
                 {

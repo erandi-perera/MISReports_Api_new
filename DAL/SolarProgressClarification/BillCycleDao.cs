@@ -1,4 +1,4 @@
-﻿using MISReports_Api.Models.SolarInformation;
+﻿using MISReports_Api.Models.Shared;
 using MISReports_Api.DBAccess;
 using System;
 using System.Collections.Generic;
@@ -11,9 +11,9 @@ namespace MISReports_Api.DAL.SolarProgressClarification
     {
         private readonly DBConnection _dbConnection = new DBConnection();
 
-        public BillCycleBulkModel GetLast24BillCycles()
+        public BillCycleModel GetLast24BillCycles()
         {
-            var model = new BillCycleBulkModel();
+            var model = new BillCycleModel();
 
             using (var conn = _dbConnection.GetConnection())
             {
