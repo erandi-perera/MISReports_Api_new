@@ -24,6 +24,11 @@ namespace MISReports_Api.Controllers
         private readonly SummaryDao _summaryDao = new SummaryDao();
         private readonly PVConnectionDao _pvConnectionDao = new PVConnectionDao();
         private readonly PVBulkConnectionDao _pvBulkConnectionDao = new PVBulkConnectionDao();
+        private readonly OrdinaryDetailedDao _ordinaryDetailedDao = new OrdinaryDetailedDao();
+        private readonly OrdinarySummaryDao _ordinarySummaryDao = new OrdinarySummaryDao();
+        private readonly ProvinceOrdinaryDao _provinceOrdinaryDao = new ProvinceOrdinaryDao();
+        private readonly RegionOrdinaryDao _regionOrdinaryDao = new RegionOrdinaryDao();
+        private readonly BillCycleOrdinaryDao _billCycleOrdinaryDao = new BillCycleOrdinaryDao();
 
         [HttpGet]
         [Route("areas")]
@@ -96,6 +101,41 @@ namespace MISReports_Api.Controllers
         }
 
         [HttpGet]
+        [Route("ordinary/province")]
+        public IHttpActionResult GetOrdinaryProvince()
+        {
+            try
+            {
+                if (!_provinceOrdinaryDao.TestConnection(out string connError))
+                {
+                    return Ok(JObject.FromObject(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    }));
+                }
+
+                var province = _provinceOrdinaryDao.GetProvince();
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = province,
+                    errorMessage = (string)null
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get province data.",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        [HttpGet]
         [Route("region")]
         public IHttpActionResult GetRegion()
         {
@@ -112,6 +152,41 @@ namespace MISReports_Api.Controllers
                 }
 
                 var region = _regionDao.GetRegion();
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = region,
+                    errorMessage = (string)null
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get region data.",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        [HttpGet]
+        [Route("ordinary/region")]
+        public IHttpActionResult GetOrdinaryRegion()
+        {
+            try
+            {
+                if (!_regionOrdinaryDao.TestConnection(out string connError))
+                {
+                    return Ok(JObject.FromObject(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    }));
+                }
+
+                var region = _regionOrdinaryDao.GetRegion();
 
                 return Ok(JObject.FromObject(new
                 {
@@ -162,6 +237,31 @@ namespace MISReports_Api.Controllers
             try
             {
                 var result = _pvBillCycleDao.GetLast24BillCycles();
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = result,
+                    errorMessage = result.ErrorMessage
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get max bill cycle",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        [HttpGet]
+        [Route("ordinary/bill-cycle")]
+        public IHttpActionResult GetOrdinaryBillCycle()
+        {
+            try
+            {
+                var result = _billCycleOrdinaryDao.GetLast24BillCycles();
 
                 return Ok(JObject.FromObject(new
                 {
@@ -294,6 +394,210 @@ namespace MISReports_Api.Controllers
             }
 
             return ProcessSummaryRequest(request);
+        }
+
+        [HttpGet]
+        [Route("solar-progress/ordinary/detailed")]
+        public IHttpActionResult GetOrdinaryDetailedReport(
+            [FromUri] string billCycle,
+            [FromUri] string reportType,
+            [FromUri] string typeCode = null)
+        {
+            var validationErrors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(billCycle))
+                validationErrors.Add("Bill cycle is required.");
+
+            if (string.IsNullOrWhiteSpace(reportType))
+                validationErrors.Add("Report type is required.");
+
+            if (validationErrors.Count > 0)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = string.Join("; ", validationErrors)
+                });
+            }
+
+            var request = new SolarProgressRequest
+            {
+                BillCycle = billCycle
+            };
+
+            switch (reportType.ToLower())
+            {
+                case "area":
+                    request.ReportType = SolarReportType.Area;
+                    request.AreaCode = typeCode;
+                    break;
+                case "province":
+                    request.ReportType = SolarReportType.Province;
+                    request.ProvCode = typeCode;
+                    break;
+                case "region":
+                    request.ReportType = SolarReportType.Region;
+                    request.Region = typeCode;
+                    break;
+                case "entireceb":
+                    request.ReportType = SolarReportType.EntireCEB;
+                    break;
+                default:
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Invalid report type.",
+                        errorDetails = "Valid types: Area, Province, Region, EntireCEB."
+                    });
+            }
+
+            return ProcessOrdinaryDetailedRequest(request);
+        }
+
+        private IHttpActionResult ProcessOrdinaryDetailedRequest(SolarProgressRequest request)
+        {
+            try
+            {
+                if (!_ordinaryDetailedDao.TestConnection(out string connError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    });
+                }
+
+                string typeValidationError = ValidateRequestParameters(request);
+                if (!string.IsNullOrEmpty(typeValidationError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = typeValidationError,
+                        errorDetails = "Invalid request parameters."
+                    });
+                }
+
+                var data = _ordinaryDetailedDao.GetOrdinaryDetailedReport(request);
+
+                return Ok(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get solar progress data.",
+                    errorDetails = ex.Message
+                });
+            }
+        }
+
+        [HttpGet]
+        [Route("solar-progress/ordinary/summary")]
+        public IHttpActionResult GetOrdinarySummaryReport(
+            [FromUri] string billCycle,
+            [FromUri] string reportType,
+            [FromUri] string typeCode = null)
+        {
+            var validationErrors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(billCycle))
+                validationErrors.Add("Bill cycle is required.");
+
+            if (string.IsNullOrWhiteSpace(reportType))
+                validationErrors.Add("Report type is required.");
+
+            if (validationErrors.Count > 0)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = string.Join("; ", validationErrors)
+                });
+            }
+
+            var request = new SolarProgressRequest
+            {
+                BillCycle = billCycle
+            };
+
+            switch (reportType.ToLower())
+            {
+                case "area":
+                    request.ReportType = SolarReportType.Area;
+                    request.AreaCode = typeCode;
+                    break;
+                case "province":
+                    request.ReportType = SolarReportType.Province;
+                    request.ProvCode = typeCode;
+                    break;
+                case "region":
+                    request.ReportType = SolarReportType.Region;
+                    request.Region = typeCode;
+                    break;
+                case "entireceb":
+                    request.ReportType = SolarReportType.EntireCEB;
+                    break;
+                default:
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Invalid report type.",
+                        errorDetails = "Valid types: Area, Province, Region, EntireCEB."
+                    });
+            }
+
+            return ProcessOrdinarySummaryRequest(request);
+        }
+
+        private IHttpActionResult ProcessOrdinarySummaryRequest(SolarProgressRequest request)
+        {
+            try
+            {
+                if (!_ordinarySummaryDao.TestConnection(out string connError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    });
+                }
+
+                string typeValidationError = ValidateRequestParameters(request);
+                if (!string.IsNullOrEmpty(typeValidationError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = typeValidationError,
+                        errorDetails = "Invalid request parameters."
+                    });
+                }
+
+                var data = _ordinarySummaryDao.GetSummaryReport(request);
+
+                return Ok(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get solar progress data.",
+                    errorDetails = ex.Message
+                });
+            }
         }
 
         private IHttpActionResult ProcessDetailedRequest(SolarProgressRequest request)

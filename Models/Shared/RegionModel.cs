@@ -1,6 +1,6 @@
-﻿namespace MISReports_Api.Models.SolarInformation
+﻿namespace MISReports_Api.Models.Shared
 {
-    public class RegionBulkModel
+    public class RegionModel
     {
         public string RegionCode { get; set; }
         public string ErrorMessage { get; set; }

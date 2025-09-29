@@ -6,7 +6,7 @@ using System.Data.OleDb;
 
 namespace MISReports_Api.DAL.Shared
 {
-    public class RegionDao
+    public class ProvinceOrdinaryDao
     {
         private readonly DBConnection _dbConnection = new DBConnection();
 
@@ -15,39 +15,40 @@ namespace MISReports_Api.DAL.Shared
             return _dbConnection.TestConnection(out errorMessage);
         }
 
-        public List<RegionModel> GetRegion()
+        public List<ProvinceModel> GetProvince()
         {
-            var regionList = new List<RegionModel>();
+            var provinceList = new List<ProvinceModel>();
 
-            using (var conn = _dbConnection.GetConnection())
+            using (var conn = _dbConnection.GetConnection(false))
             {
                 try
                 {
                     conn.Open();
 
-                    string sql = "SELECT distinct region FROM areas WHERE region NOT IN ('L','T1')";
+                    string sql = "SELECT prov_code,prov_name FROM provinces ORDER BY prov_name";
 
                     using (var cmd = new OleDbCommand(sql, conn))
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            var region = new RegionModel
+                            var province = new ProvinceModel
                             {
-                                RegionCode = reader[0]?.ToString().Trim()
+                                ProvinceCode = reader[0]?.ToString().Trim(),
+                                ProvinceName = reader[1]?.ToString().Trim()
                             };
 
-                            regionList.Add(region);
+                            provinceList.Add(province);
                         }
                     }
                 }
                 catch (OleDbException ex)
                 {
-                    throw new Exception("Error retrieving region data: " + ex.Message, ex);
+                    throw new Exception("Error retrieving province data: " + ex.Message, ex);
                 }
             }
 
-            return regionList;
+            return provinceList;
         }
     }
 }
