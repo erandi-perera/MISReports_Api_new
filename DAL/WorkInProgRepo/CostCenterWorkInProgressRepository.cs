@@ -18,7 +18,7 @@ namespace MISReports_Api.DAL
             Debug.WriteLine($"GetCostCenterWorkInProgress method started for deptId: {deptId}");
 
             // Try each connection string in order
-            string[] connectionStringNames = { "Darcon16Oracle" };
+            string[] connectionStringNames = { "HQOracle" };
 
             foreach (var connectionStringName in connectionStringNames)
             {
@@ -47,9 +47,9 @@ namespace MISReports_Api.DAL
 
                         Debug.WriteLine("Executing main query...");
                         string sql = @"
-                            select  (TO_CHAR(T2.prj_ass_dt,'YYYY') ) as c6, 
+                            select  (TO_CHAR(T2.prj_ass_dt,'YYYY') ) as c6,
                                     T2.project_no,
-                                    T2.cat_cd,  
+                                    T2.cat_cd,
                                     t2.descr,
                                     T2.fund_source,
                                     T3.wip_yr  as wip_yr,
@@ -59,7 +59,7 @@ namespace MISReports_Api.DAL
                                     C.paid_date,
                                     (case when T2.Status in (4) THEN T2.apr_dt1 else null end ) as soft_close_date,
                                     T2.Std_cost  as Estimated_cost,
-                                    (case 
+                                    (case
                                         when T2.status =1 then  'Open'
                                         when T2.status =3 then  'Closed'
                                         when T2.Status = 6 THEN 'TO BE APPROVED (CONSTRUCTION REVISED JOBS)'
@@ -70,21 +70,21 @@ namespace MISReports_Api.DAL
                                         when T2.Status = 41 THEN 'REJECTED JOB'
                                         when T2.Status in(55,56,57,58,59,61) THEN 'TO BE APPROVED (DEPOT REVISED JOBS)'
                                         when T2.Status in(60) THEN 'REVISED JOB APPROVED.CONSUMER SHOULD BE PAY EXTRA AMOUNT'
-                                        ELSE 'UNKNOWN' 
+                                        ELSE 'UNKNOWN'
                                      END) as status,
-                                    (case  
+                                    (case
                                         when T1.res_type is null or T1.res_type like '%MAT%' then 'MAT'
                                         when T1.res_type like '%LAB%' then 'LAB'
-                                        else 'OTHER' 
+                                        else 'OTHER'
                                      end) as c8,
                                    sum(T1.commited_cost) as commited_cost,
                                    (select dept_nm from gldeptm where dept_id = :deptId) AS CCT_NAME
                             from pcestdmt T1,
                                  pcwiph T3,
-                                 (pcesthmt T2 LEFT OUTER JOIN piv_detail c 
-                                     ON trim(T2.estimate_no) = trim(c.reference_no) 
-                                     and c.status in ('Q','P','F','FR','FA') 
-                                     and c.reference_type ='EST' 
+                                 (pcesthmt T2 LEFT OUTER JOIN piv_detail c
+                                     ON trim(T2.estimate_no) = trim(c.reference_no)
+                                     and c.status in ('Q','P','F','FR','FA')
+                                     and c.reference_type ='EST'
                                      and c.dept_id = T2.dept_id)
                             where T2.estimate_no = T1.estimate_no
                               and T2.dept_id = T1.dept_id
@@ -93,16 +93,16 @@ namespace MISReports_Api.DAL
                               and T2.fund_id = T3.fund_id
                               and T2.cat_cd not in ('MTN','MAIN','MAINT','MTN_TL','MTN_TL_REH','BDJ','7840','LSF','MAINTENANCE','AMU','MNT','EMU','PSF','FSM')
                               and T2.status <> 3
-                            group by T2.prj_ass_dt, T2.project_no, T2.cat_cd, T2.fund_source, 
-                                     T3.wip_yr, T3.wip_mth, T1.res_type, T1.commited_cost, 
-                                     T2.Std_cost, t2.descr, T2.estimate_no, T2.status, 
+                            group by T2.prj_ass_dt, T2.project_no, T2.cat_cd, T2.fund_source,
+                                     T3.wip_yr, T3.wip_mth, T1.res_type, T1.commited_cost,
+                                     T2.Std_cost, t2.descr, T2.estimate_no, T2.status,
                                      T2.apr_dt1, c.piv_no, c.grand_total, C.paid_date
 
                             union all
 
                             select  (TO_CHAR(T2.prj_ass_dt,'YYYY') ) as c6,
                                     T2.project_no,
-                                    T2.cat_cd,  
+                                    T2.cat_cd,
                                     t2.descr,
                                     T2.fund_source,
                                     0 as wip_yr,
@@ -112,7 +112,7 @@ namespace MISReports_Api.DAL
                                     C.paid_date,
                                     (case when T2.Status in (4) THEN T2.apr_dt1 else null end ) as soft_close_date,
                                     T2.Std_cost as Estimated_cost,
-                                    (case 
+                                    (case
                                         when T2.status =1 then  'Open'
                                         when T2.status =3 then  'Closed'
                                         when T2.Status = 6 THEN 'TO BE APPROVED (CONSTRUCTION REVISED JOBS)'
@@ -123,20 +123,20 @@ namespace MISReports_Api.DAL
                                         when T2.Status = 41 THEN 'REJECTED JOB'
                                         when T2.Status in(55,56,57,58,59,61) THEN 'TO BE APPROVED (DEPOT REVISED JOBS)'
                                         when T2.Status in(60) THEN 'REVISED JOB APPROVED.CONSUMER SHOULD BE PAY EXTRA AMOUNT'
-                                        ELSE 'UNKNOWN' 
+                                        ELSE 'UNKNOWN'
                                      END) as status,
-                                    (case  
+                                    (case
                                         when T1.res_type is null or T1.res_type like '%MAT%' then 'MAT'
                                         when T1.res_type like '%LAB%' then 'LAB'
-                                        else 'OTHER' 
+                                        else 'OTHER'
                                      end) as c8,
                                    sum(T1.commited_cost) as commited_cost,
                                    (select dept_nm from gldeptm where dept_id = :deptId) AS CCT_NAME
                             from pcestdmt T1,
-                                 (pcesthmt T2 LEFT OUTER JOIN piv_detail c 
-                                     ON trim(T2.estimate_no) = trim(c.reference_no) 
-                                     and c.status in ('Q','P','F','FR','FA') 
-                                     and c.reference_type ='EST' 
+                                 (pcesthmt T2 LEFT OUTER JOIN piv_detail c
+                                     ON trim(T2.estimate_no) = trim(c.reference_no)
+                                     and c.status in ('Q','P','F','FR','FA')
+                                     and c.reference_type ='EST'
                                      and c.dept_id = T2.dept_id)
                             where T2.estimate_no = T1.estimate_no
                               and T2.dept_id = T1.dept_id

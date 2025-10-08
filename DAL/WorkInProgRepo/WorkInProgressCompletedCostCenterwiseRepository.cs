@@ -17,7 +17,7 @@ namespace MISReports_Api.DAL
 
             Debug.WriteLine($"GetWorkInProgressCompletedCostCenterwise started for costctr: {costctr}, fromDate: {fromDate}, toDate: {toDate}");
 
-            string[] connectionStringNames = { "Darcon16Oracle" };
+            string[] connectionStringNames = { "HQOracle" };
 
             foreach (var connectionStringName in connectionStringNames)
             {

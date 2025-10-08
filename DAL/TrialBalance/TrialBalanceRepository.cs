@@ -6,10 +6,11 @@ using System.Configuration;
 using System.Diagnostics;
 
 namespace MISReports_Api.DAL
-    //get one  company details 
-{     public class TrialBalanceRepository
+//get one  company details
+{
+    public class TrialBalanceRepository
     {
-        private readonly string connectionString = ConfigurationManager.ConnectionStrings["DefaultOracle"].ConnectionString;
+        private readonly string connectionString = ConfigurationManager.ConnectionStrings["HQOracle"].ConnectionString;
 
         public List<TrialBalanceModel> GetTrialBalance(string costctr, string repyear, string repmonth)
         {
@@ -88,7 +89,7 @@ namespace MISReports_Api.DAL
             return trialBalanceList;
         }
 
-        // get depatment in  each selected reagion  wise 
+        // get depatment in  each selected reagion  wise
         public List<RegionDepartment> GetDepartmentsByRegion(string region)
         {
             var deptList = new List<RegionDepartment>();
@@ -131,8 +132,9 @@ namespace MISReports_Api.DAL
                     }
                 }
             }
-           return deptList;
+            return deptList;
         }
+
         // get company bylevel
         public List<CompanyInfo> GetCompaniesByLevel(string lvl_no)
         {
@@ -143,10 +145,10 @@ namespace MISReports_Api.DAL
                 conn.Open();
 
                 string sql = @"
-            SELECT comp_id, comp_nm 
-            FROM glcompm 
-            WHERE status = 2 
-              AND lvl_no = :lvl_no 
+            SELECT comp_id, comp_nm
+            FROM glcompm
+            WHERE status = 2
+              AND lvl_no = :lvl_no
             ORDER BY comp_id";
 
                 using (var cmd = new OracleCommand(sql, conn))
@@ -170,7 +172,5 @@ namespace MISReports_Api.DAL
 
             return companies;
         }
-
-
     }
 }

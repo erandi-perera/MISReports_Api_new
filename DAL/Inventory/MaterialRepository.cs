@@ -8,7 +8,7 @@ namespace MISReports_Api.DAL
 {
     public class MaterialRepository
     {
-        private readonly string connectionString = ConfigurationManager.ConnectionStrings["DefaultOracle"].ConnectionString;
+        private readonly string connectionString = ConfigurationManager.ConnectionStrings["HQOracle"].ConnectionString;
 
         // Get name and code of active materials
         public List<Material> GetActiveMaterials()
@@ -48,7 +48,7 @@ namespace MISReports_Api.DAL
                 conn.Open();
 
                 string sql = @"
-                    SELECT 
+                    SELECT
                         (CASE WHEN c.lvl_no = 60 THEN c.parent_id ELSE c.Grp_comp END) AS Region,
                         i.mat_cd,
                         SUM(i.qty_on_hand) AS qty_on_hand
@@ -169,7 +169,7 @@ namespace MISReports_Api.DAL
                 conn.Open();
 
                 string sql = @"
-                    SELECT 
+                    SELECT
                         (CASE WHEN c.lvl_no = 60 THEN c.parent_id ELSE c.Grp_comp END) AS Region,
                         i.mat_cd,
                         SUM(i.qty_on_hand) AS qty_on_hand
@@ -218,7 +218,7 @@ namespace MISReports_Api.DAL
                 conn.Open();
 
                 string sql = @"
-            SELECT 
+            SELECT
                 (CASE WHEN c.lvl_no = 60 THEN c.comp_id ELSE c.parent_id END) AS Province,
                 i.mat_cd,
                 SUM(i.qty_on_hand) AS qty_on_hand
