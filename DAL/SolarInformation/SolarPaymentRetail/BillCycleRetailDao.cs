@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
 
-namespace MISReports_Api.DAL.SolarProgressClarification
+namespace MISReports_Api.DAL.SolarInformation.SolarPaymentRetail
 {
-    public class BillCycleOrdinaryDao
+    public class BillCycleRetailDao
     {
         private readonly DBConnection _dbConnection = new DBConnection();
 
@@ -22,7 +22,7 @@ namespace MISReports_Api.DAL.SolarProgressClarification
                     conn.Open();
 
                     // Get max bill cycle as integer
-                    string sql = "SELECT max(bill_cycle) FROM netmtchg ";
+                    string sql = "SELECT max(bill_cycle) FROM netmtcons ";
                     using (OleDbCommand cmd = new OleDbCommand(sql, conn))
                     {
                         object maxCycleObj = cmd.ExecuteScalar();

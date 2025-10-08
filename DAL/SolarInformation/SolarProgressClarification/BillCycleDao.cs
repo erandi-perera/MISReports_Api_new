@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
 
-namespace MISReports_Api.DAL.SolarProgressClarification
+namespace MISReports_Api.DAL.SolarInformation.SolarProgressClarification
 {
     public class BillCycleDao
     {
