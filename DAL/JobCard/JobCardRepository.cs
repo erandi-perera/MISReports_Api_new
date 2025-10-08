@@ -1,4 +1,4 @@
-using MISReports_Api.Models;
+﻿using MISReports_Api.Models;
 using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ namespace MISReports_Api.DAL
 {
     public class JobCardRepository
     {
-        private readonly string connectionString = ConfigurationManager.ConnectionStrings["DefaultOracle"].ConnectionString;
+        private readonly string connectionString = ConfigurationManager.ConnectionStrings["HQOracle"].ConnectionString;
 
         public async Task<List<JobcardModel>> GetJobCardsAsync(string projectNo, string costCenter)
         {
@@ -25,7 +25,7 @@ namespace MISReports_Api.DAL
                     string sql = @"
                         select T4.project_no  , (select  sum(T11.commited_cost)
                       from 	pcesthmt T22, pcestdmt T11
-                      where 
+                      where
                      T22.estimate_no=T11.estimate_no and
                      T22.dept_id=T11.dept_id and
                        T22.project_no= T4.project_no  and  T22.dept_id =:costctr) as commited_cost,
@@ -43,7 +43,7 @@ namespace MISReports_Api.DAL
                         WHEN T4.Status in(60) THEN 'REVISED JOB APPROVED.CONSUMER SHOULD BE PAY EXTRA AMOUNT'
                          WHEN T4.Status in(61) THEN 'To be Approved by CE (REVISED JOBS)'
                           ELSE 'UNKNOWN' END) as status,
-                         T2.Log_yr , 
+                         T2.Log_yr ,
                        T2.Log_mth  ,
                       T2.doc_pf  ,
                      T2.doc_no  ,
