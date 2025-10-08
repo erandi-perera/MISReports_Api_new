@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Data.OleDb;
 using System.Linq;
 
-namespace MISReports_Api.DAL.SolarPVConnections
+namespace MISReports_Api.DAL.SolarInformation.SolarPVConnections
 {
     public class PVBulkConnectionDao
     {

@@ -6,9 +6,9 @@ using System.Configuration;
 using System.Data;
 using System.Data.OleDb;
 
-namespace MISReports_Api.DAL.SolarProgressClarification
+namespace MISReports_Api.DAL.SolarInformation.SolarProgressClarification
 {
-    public class OrdinarySummaryDao
+    public class SummaryDao
     {
         private readonly DBConnection _dbConnection = new DBConnection();
 
@@ -20,10 +20,10 @@ namespace MISReports_Api.DAL.SolarProgressClarification
             {
                 // Connection string verification
                 System.Diagnostics.Debug.WriteLine($"=== Testing Connection ===");
-                System.Diagnostics.Debug.WriteLine($"Connection String: {_dbConnection.OrdinaryConnectionString}");
+                System.Diagnostics.Debug.WriteLine($"Connection String: {_dbConnection.BulkConnectionString}");
 
                 // Test if we can parse the connection string first
-                var builder = new OleDbConnectionStringBuilder(_dbConnection.OrdinaryConnectionString);
+                var builder = new OleDbConnectionStringBuilder(_dbConnection.BulkConnectionString);
                 System.Diagnostics.Debug.WriteLine($"Data Source: {builder.DataSource}");
                 System.Diagnostics.Debug.WriteLine($"Provider: {builder.Provider}");
 
@@ -40,7 +40,7 @@ namespace MISReports_Api.DAL.SolarProgressClarification
                     return false;
                 }
 
-                using (var conn = _dbConnection.GetConnection(false))
+                using (var conn = _dbConnection.GetConnection())
                 {
                     System.Diagnostics.Debug.WriteLine("Attempting to open connection...");
                     conn.Open();
@@ -87,7 +87,7 @@ namespace MISReports_Api.DAL.SolarProgressClarification
                 System.Diagnostics.Debug.WriteLine($"Generated SQL: {sql}");
                 System.Diagnostics.Debug.WriteLine($"Parameters: BillCycle={request.BillCycle}, AreaCode={request.AreaCode}, ProvCode={request.ProvCode}, Region={request.Region}");
 
-                using (var conn = _dbConnection.GetConnection(false))
+                using (var conn = _dbConnection.GetConnection())
                 {
                     System.Diagnostics.Debug.WriteLine("Attempting to open connection...");
                     conn.Open();

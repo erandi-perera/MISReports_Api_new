@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
 
-namespace MISReports_Api.DAL.SolarPVConnections
+namespace MISReports_Api.DAL.SolarInformation.SolarProgressClarification
 {
-    public class PVBillCycleDao
+    public class BillCycleOrdinaryDao
     {
         private readonly DBConnection _dbConnection = new DBConnection();
 
@@ -15,28 +15,17 @@ namespace MISReports_Api.DAL.SolarPVConnections
         {
             var model = new BillCycleModel();
 
-            try
+            using (var conn = _dbConnection.GetConnection(false))
             {
-                // Test the connection first
-                bool connectionTest = _dbConnection.TestConnection(out string testError, false);
-                if (!connectionTest)
-                {
-                    model.ErrorMessage = $"Connection test failed: {testError}";
-                    return model;
-                }
-
-                using (var conn = _dbConnection.GetConnection(useBulkConnection: false))
+                try
                 {
                     conn.Open();
-                    System.Diagnostics.Trace.WriteLine("Database connection opened successfully");
 
                     // Get max bill cycle as integer
-                    string sql = "SELECT max(bill_cycle) FROM netmtcons";
+                    string sql = "SELECT max(bill_cycle) FROM netmtchg ";
                     using (OleDbCommand cmd = new OleDbCommand(sql, conn))
                     {
                         object maxCycleObj = cmd.ExecuteScalar();
-                        System.Diagnostics.Trace.WriteLine($"Query executed, result: {maxCycleObj}");
-
                         if (maxCycleObj != null && maxCycleObj != DBNull.Value)
                         {
                             int maxCycle;
@@ -44,31 +33,20 @@ namespace MISReports_Api.DAL.SolarPVConnections
                             {
                                 model.MaxBillCycle = maxCycle.ToString();
                                 model.BillCycles = Generate24MonthYearStrings(maxCycle);
-                                System.Diagnostics.Trace.WriteLine($"Successfully retrieved max bill cycle: {maxCycle}");
                             }
-                            else
-                            {
-                                model.ErrorMessage = "Failed to parse bill cycle value";
-                            }
-                        }
-                        else
-                        {
-                            model.ErrorMessage = "No bill cycle data found in netmtcons table";
                         }
                     }
                 }
-            }
-            catch (OleDbException ex)
-            {
-                string errorDetails = $"OleDb Error: {ex.Message}, Error Code: {ex.ErrorCode}";
-                System.Diagnostics.Trace.WriteLine(errorDetails);
-                model.ErrorMessage = $"Database error: {ex.Message}";
-            }
-            catch (Exception ex)
-            {
-                string errorDetails = $"Unexpected error: {ex.Message}, Stack: {ex.StackTrace}";
-                System.Diagnostics.Trace.WriteLine(errorDetails);
-                model.ErrorMessage = $"Unexpected error: {ex.Message}";
+                catch (OleDbException ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"Error retrieving max bill cycle: {ex.Message}");
+                    model.ErrorMessage = "Error retrieving max bill cycle";
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Trace.WriteLine($"Unexpected error: {ex.Message}");
+                    model.ErrorMessage = "Unexpected error occurred";
+                }
             }
 
             return model;

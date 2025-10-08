@@ -1,14 +1,13 @@
-﻿using MISReports_Api.DAL.SolarProgressClarification;
-using MISReports_Api.DAL.SolarPVConnections;
+﻿using MISReports_Api.DAL.SolarInformation.SolarProgressClarification;
+using MISReports_Api.DAL.SolarInformation.SolarPVConnections;
+using MISReports_Api.DAL.SolarInformation.SolarPaymentRetail;
 using MISReports_Api.DAL.Shared;
-using MISReports_Api.DBAccess;
-using System.Data.OleDb;
-using MISReports_Api.Models;
 using MISReports_Api.Models.SolarInformation;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Web.Http;
+using System.Linq;
 
 namespace MISReports_Api.Controllers
 {
@@ -29,6 +28,10 @@ namespace MISReports_Api.Controllers
         private readonly ProvinceOrdinaryDao _provinceOrdinaryDao = new ProvinceOrdinaryDao();
         private readonly RegionOrdinaryDao _regionOrdinaryDao = new RegionOrdinaryDao();
         private readonly BillCycleOrdinaryDao _billCycleOrdinaryDao = new BillCycleOrdinaryDao();
+        private readonly BillCycleRetailDao _billCycleRetailDao = new BillCycleRetailDao();
+        private readonly RetailDetailedDao _retailDetailedDao = new RetailDetailedDao();
+        private readonly OrdSummaryDao _ordSummaryDao = new OrdSummaryDao();
+        private readonly BulkSummaryDao _bulkSummaryDao = new BulkSummaryDao();
 
         [HttpGet]
         [Route("areas")]
@@ -211,7 +214,7 @@ namespace MISReports_Api.Controllers
         {
             try
             {
-                var result = _billCycleDao.GetLast24BillCycles();
+                var result = _billCycleDao.GetLast24BillCycles();//From netmtchg table in InformixBulkConnection database
 
                 return Ok(JObject.FromObject(new
                 {
@@ -236,7 +239,7 @@ namespace MISReports_Api.Controllers
         {
             try
             {
-                var result = _pvBillCycleDao.GetLast24BillCycles();
+                var result = _pvBillCycleDao.GetLast24BillCycles();//From netmtcons table in InformixBulkConnection database
 
                 return Ok(JObject.FromObject(new
                 {
@@ -261,7 +264,32 @@ namespace MISReports_Api.Controllers
         {
             try
             {
-                var result = _billCycleOrdinaryDao.GetLast24BillCycles();
+                var result = _billCycleOrdinaryDao.GetLast24BillCycles();//From netmtchg table in InformixConnection database
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = result,
+                    errorMessage = result.ErrorMessage
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get max bill cycle",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        [HttpGet]
+        [Route("retail/billcycle")]
+        public IHttpActionResult GetRetailBillCycle()
+        {
+            try
+            {
+                var result = _billCycleRetailDao.GetLast24BillCycles();//From netmtcons table in InformixConnection database
 
                 return Ok(JObject.FromObject(new
                 {
@@ -984,6 +1012,282 @@ namespace MISReports_Api.Controllers
 
             return null;
         }
+
+        [HttpGet]
+        [Route("retail/detailed")]
+        public IHttpActionResult GetRetailDetailedReport(
+            [FromUri] string billCycle = null,
+            [FromUri] string calcCycle = null,
+            [FromUri] string cycleType = "A", // A for bill_cycle, C for calc_cycle
+            [FromUri] string netType = "1",   // Net type filter (1, 2, 3, 4, 5)
+            [FromUri] string reportType = "entireceb",
+            [FromUri] string typeCode = null)
+        {
+            var validationErrors = new List<string>();
+
+            // Validate cycle parameters
+            if (cycleType == "A" && string.IsNullOrWhiteSpace(billCycle))
+                validationErrors.Add("Bill cycle is required when cycle type is 'A'.");
+
+            if (cycleType == "C" && string.IsNullOrWhiteSpace(calcCycle))
+                validationErrors.Add("Calc cycle is required when cycle type is 'C'.");
+
+            if (cycleType != "A" && cycleType != "C")
+                validationErrors.Add("Cycle type must be 'A' (bill cycle) or 'C' (calc cycle).");
+
+            // Validate net type
+            if (string.IsNullOrWhiteSpace(netType))
+                validationErrors.Add("Net type is required.");
+            else if (!new[] { "1", "2", "3", "4", "5" }.Contains(netType))
+                validationErrors.Add("Net type must be 1, 2, 3, 4, or 5.");
+
+            if (validationErrors.Count > 0)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = string.Join("; ", validationErrors)
+                });
+            }
+
+            var request = new RetailDetailedRequest
+            {
+                BillCycle = billCycle,
+                CalcCycle = calcCycle,
+                CycleType = cycleType,
+                NetType = netType
+            };
+
+            switch (reportType.ToLower())
+            {
+                case "area":
+                    request.ReportType = SolarReportType.Area;
+                    request.AreaCode = typeCode;
+                    break;
+                case "province":
+                    request.ReportType = SolarReportType.Province;
+                    request.ProvCode = typeCode;
+                    break;
+                case "region":
+                    request.ReportType = SolarReportType.Region;
+                    request.Region = typeCode;
+                    break;
+                case "entireceb":
+                    request.ReportType = SolarReportType.EntireCEB;
+                    break;
+                default:
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Invalid report type.",
+                        errorDetails = "Valid types: Area, Province, Region, EntireCEB."
+                    });
+            }
+
+            return ProcessRetailDetailedRequest(request);
+        }
+
+        private IHttpActionResult ProcessRetailDetailedRequest(RetailDetailedRequest request)
+        {
+            try
+            {
+                if (!_retailDetailedDao.TestConnection(out string connError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    });
+                }
+
+                string typeValidationError = ValidateRetailDetailedParameters(request);
+                if (!string.IsNullOrEmpty(typeValidationError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = typeValidationError,
+                        errorDetails = "Invalid request parameters."
+                    });
+                }
+
+                var data = _retailDetailedDao.GetRetailDetailedReport(request);
+
+                return Ok(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get retail detailed report data.",
+                    errorDetails = ex.Message
+                });
+            }
+        }
+
+        private string ValidateRetailDetailedParameters(RetailDetailedRequest request)
+        {
+            switch (request.ReportType)
+            {
+                case SolarReportType.Area:
+                    if (string.IsNullOrEmpty(request.AreaCode))
+                        return "Area code is required for Area report type.";
+                    break;
+                case SolarReportType.Province:
+                    if (string.IsNullOrEmpty(request.ProvCode))
+                        return "Province code is required for Province report type.";
+                    break;
+                case SolarReportType.Region:
+                    if (string.IsNullOrEmpty(request.Region))
+                        return "Region is required for Region report type.";
+                    break;
+                case SolarReportType.EntireCEB:
+                    break;
+                default:
+                    return "Invalid report type specified.";
+            }
+
+            return null;
+        }
+
+        [HttpGet]
+        [Route("retail/summary")]
+        public IHttpActionResult GetRetailSummaryReport(
+            [FromUri] string billCycle = null,
+            [FromUri] string calcCycle = null,
+            [FromUri] string cycleType = "A") // A for bill_cycle, C for calc_cycle
+        {
+            var validationErrors = new List<string>();
+
+            // Validate cycle parameters
+            if (cycleType == "A" && string.IsNullOrWhiteSpace(billCycle))
+                validationErrors.Add("Bill cycle is required when cycle type is 'A'.");
+
+            if (cycleType == "C" && string.IsNullOrWhiteSpace(calcCycle))
+                validationErrors.Add("Calc cycle is required when cycle type is 'C'.");
+
+            if (cycleType != "A" && cycleType != "C")
+                validationErrors.Add("Cycle type must be 'A' (bill cycle) or 'C' (calc cycle).");
+
+            if (validationErrors.Count > 0)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = string.Join("; ", validationErrors)
+                });
+            }
+
+            var request = new RetailSummaryRequest
+            {
+                BillCycle = billCycle,
+                CalcCycle = calcCycle,
+                CycleType = cycleType
+            };
+
+            return ProcessRetailSummaryRequest(request);
+        }
+
+        private IHttpActionResult ProcessRetailSummaryRequest(RetailSummaryRequest request)
+        {
+            try
+            {
+                if (!_ordSummaryDao.TestConnection(out string connError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    });
+                }
+
+                var data = _ordSummaryDao.GetRetailSummaryReport(request);
+
+                return Ok(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get retail summary report data.",
+                    errorDetails = ex.Message
+                });
+            }
+        }
+
+        [HttpGet]
+        [Route("retail/summary-bulk")]
+        public IHttpActionResult GetRetailBulkSummaryReport([FromUri] string billCycle)
+        {
+            var validationErrors = new List<string>();
+
+            // Validate bill cycle parameter
+            if (string.IsNullOrWhiteSpace(billCycle))
+                validationErrors.Add("Bill cycle is required.");
+
+            if (validationErrors.Count > 0)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = string.Join("; ", validationErrors)
+                });
+            }
+
+            var request = new RetailSummaryRequest
+            {
+                BillCycle = billCycle,
+                CycleType = "A" // Bulk only uses bill cycle
+            };
+
+            return ProcessRetailBulkSummaryRequest(request);
+        }
+
+        private IHttpActionResult ProcessRetailBulkSummaryRequest(RetailSummaryRequest request)
+        {
+            try
+            {
+                if (!_bulkSummaryDao.TestConnection(out string connError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    });
+                }
+
+                var data = _bulkSummaryDao.GetRetailBulkSummaryReport(request);
+
+                return Ok(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get retail bulk summary report data.",
+                    errorDetails = ex.Message
+                });
+            }
+        }
+
     }
 }
 
