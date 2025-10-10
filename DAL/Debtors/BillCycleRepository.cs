@@ -121,12 +121,15 @@ namespace MISReports_Api.DAL
                 case "A":
                     model.Description = "Debtors Age Analysis – Active Customers";
                     break;
+
                 case "G":
                     model.Description = "Debtors Age Analysis – Government Customers";
                     break;
+
                 case "F":
                     model.Description = "Debtors Age Analysis – Finalized Customers";
                     break;
+
                 default:
                     model.Description = "Debtors Age Analysis – " + custType + " Customers";
                     break;
