@@ -1,6 +1,7 @@
 ﻿using MISReports_Api.DAL.SolarInformation.SolarProgressClarification;
 using MISReports_Api.DAL.SolarInformation.SolarPVConnections;
 using MISReports_Api.DAL.SolarInformation.SolarPaymentRetail;
+using MISReports_Api.DAL.SolarInformation.SolarPVCapacity;
 using MISReports_Api.DAL.Shared;
 using MISReports_Api.Models.SolarInformation;
 using Newtonsoft.Json.Linq;
@@ -32,6 +33,10 @@ namespace MISReports_Api.Controllers
         private readonly RetailDetailedDao _retailDetailedDao = new RetailDetailedDao();
         private readonly OrdSummaryDao _ordSummaryDao = new OrdSummaryDao();
         private readonly BulkSummaryDao _bulkSummaryDao = new BulkSummaryDao();
+        private readonly PVCapacityBillCycleDao _pVCapacityBillCycleDao = new PVCapacityBillCycleDao();
+        private readonly PVCapacityOrdinaryDao _pvCapacityOrdinaryDao = new PVCapacityOrdinaryDao();
+        private readonly PVCapacityBulkDao _pvCapacityBulkDao = new PVCapacityBulkDao();
+        private readonly PVCapacitySummaryDao _pvCapacitySummaryDao = new PVCapacitySummaryDao();
 
         [HttpGet]
         [Route("areas")]
@@ -1283,6 +1288,359 @@ namespace MISReports_Api.Controllers
                 {
                     data = (object)null,
                     errorMessage = "Cannot get retail bulk summary report data.",
+                    errorDetails = ex.Message
+                });
+            }
+        }
+
+        [HttpGet]
+        [Route("solarPVCapacity/billcycle/max")]
+        public IHttpActionResult GetPVCapacityMaxBillCycle()
+        {
+            try
+            {
+                var result = _pVCapacityBillCycleDao.GetLast24BillCycles();//From netprogrs table in InformixConnection database
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = result,
+                    errorMessage = result.ErrorMessage
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get max bill cycle",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        [HttpGet]
+        [Route("solarPVCapacity/ordinary")]
+        public IHttpActionResult GetPVCapacityOrdinaryReport(
+            [FromUri] string billCycle,
+            [FromUri] string reportType,
+            [FromUri] string typeCode = null)
+        {
+            var validationErrors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(billCycle))
+                validationErrors.Add("Bill cycle is required.");
+
+            if (string.IsNullOrWhiteSpace(reportType))
+                validationErrors.Add("Report type is required.");
+
+            if (validationErrors.Count > 0)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = string.Join("; ", validationErrors)
+                });
+            }
+
+            var request = new SolarProgressRequest
+            {
+                BillCycle = billCycle
+            };
+
+            switch (reportType.ToLower())
+            {
+                case "area":
+                    request.ReportType = SolarReportType.Area;
+                    request.AreaCode = typeCode;
+                    break;
+                case "province":
+                    request.ReportType = SolarReportType.Province;
+                    request.ProvCode = typeCode;
+                    break;
+                case "region":
+                    request.ReportType = SolarReportType.Region;
+                    request.Region = typeCode;
+                    break;
+                case "entireceb":
+                    request.ReportType = SolarReportType.EntireCEB;
+                    break;
+                default:
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Invalid report type.",
+                        errorDetails = "Valid types: Area, Province, Region, EntireCEB."
+                    });
+            }
+
+            return ProcessPVCapacityOrdinaryRequest(request);
+        }
+
+        private IHttpActionResult ProcessPVCapacityOrdinaryRequest(SolarProgressRequest request)
+        {
+            try
+            {
+                if (!_pvCapacityOrdinaryDao.TestConnection(out string connError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    });
+                }
+
+                string typeValidationError = ValidateRequestParameters(request);
+                if (!string.IsNullOrEmpty(typeValidationError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = typeValidationError,
+                        errorDetails = "Invalid request parameters."
+                    });
+                }
+
+                var data = _pvCapacityOrdinaryDao.GetPVCapacityReport(request);
+
+                return Ok(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get PV capacity data.",
+                    errorDetails = ex.Message
+                });
+            }
+        }
+
+        [HttpGet]
+        [Route("solarPVCapacity/bulk")]
+        public IHttpActionResult GetPVCapacityBulkReport(
+            [FromUri] string billCycle,
+            [FromUri] string reportType,
+            [FromUri] string typeCode = null)
+        {
+            var validationErrors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(billCycle))
+                validationErrors.Add("Bill cycle is required.");
+
+            if (string.IsNullOrWhiteSpace(reportType))
+                validationErrors.Add("Report type is required.");
+
+            if (validationErrors.Count > 0)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = string.Join("; ", validationErrors)
+                });
+            }
+
+            var request = new SolarProgressRequest
+            {
+                BillCycle = billCycle
+            };
+
+            switch (reportType.ToLower())
+            {
+                case "area":
+                    request.ReportType = SolarReportType.Area;
+                    request.AreaCode = typeCode;
+                    break;
+                case "province":
+                    request.ReportType = SolarReportType.Province;
+                    request.ProvCode = typeCode;
+                    break;
+                case "region":
+                    request.ReportType = SolarReportType.Region;
+                    request.Region = typeCode;
+                    break;
+                case "entireceb":
+                    request.ReportType = SolarReportType.EntireCEB;
+                    break;
+                default:
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Invalid report type.",
+                        errorDetails = "Valid types: Area, Province, Region, EntireCEB."
+                    });
+            }
+
+            return ProcessPVCapacityBulkRequest(request);
+        }
+
+        private IHttpActionResult ProcessPVCapacityBulkRequest(SolarProgressRequest request)
+        {
+            try
+            {
+                if (!_pvCapacityBulkDao.TestConnection(out string connError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    });
+                }
+
+                string typeValidationError = ValidateRequestParameters(request);
+                if (!string.IsNullOrEmpty(typeValidationError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = typeValidationError,
+                        errorDetails = "Invalid request parameters."
+                    });
+                }
+
+                var data = _pvCapacityBulkDao.GetPVCapacityBulkReport(request);
+
+                // Check if data is empty due to null generation capacity
+                if (data == null || data.Count == 0)
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "No data available. This may be due to null generation capacity records for the specified bill cycle.",
+                        errorDetails = "Please check the data for the bill cycle or contact the administrator."
+                    });
+                }
+
+                return Ok(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get PV capacity bulk data.",
+                    errorDetails = ex.Message
+                });
+            }
+        }
+
+        [HttpGet]
+        [Route("solarPVCapacity/summary")]
+        public IHttpActionResult GetPVCapacitySummaryReport(
+            [FromUri] string billCycle,
+            [FromUri] string reportType,
+            [FromUri] string typeCode = null)
+        {
+            var validationErrors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(billCycle))
+                validationErrors.Add("Bill cycle is required.");
+
+            if (string.IsNullOrWhiteSpace(reportType))
+                validationErrors.Add("Report type is required.");
+
+            if (validationErrors.Count > 0)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = string.Join("; ", validationErrors)
+                });
+            }
+
+            var request = new SolarProgressRequest
+            {
+                BillCycle = billCycle
+            };
+
+            switch (reportType.ToLower())
+            {
+                case "area":
+                    request.ReportType = SolarReportType.Area;
+                    request.AreaCode = typeCode;
+                    break;
+                case "province":
+                    request.ReportType = SolarReportType.Province;
+                    request.ProvCode = typeCode;
+                    break;
+                case "region":
+                    request.ReportType = SolarReportType.Region;
+                    request.Region = typeCode;
+                    break;
+                case "entireceb":
+                    request.ReportType = SolarReportType.EntireCEB;
+                    break;
+                default:
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Invalid report type.",
+                        errorDetails = "Valid types: Area, Province, Region, EntireCEB."
+                    });
+            }
+
+            return ProcessPVCapacitySummaryRequest(request);
+        }
+
+        private IHttpActionResult ProcessPVCapacitySummaryRequest(SolarProgressRequest request)
+        {
+            try
+            {
+                if (!_pvCapacitySummaryDao.TestConnection(out string connError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    });
+                }
+
+                string typeValidationError = ValidateRequestParameters(request);
+                if (!string.IsNullOrEmpty(typeValidationError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = typeValidationError,
+                        errorDetails = "Invalid request parameters."
+                    });
+                }
+
+                var data = _pvCapacitySummaryDao.GetPVCapacitySummaryReport(request);
+
+                // Check if data is empty due to null generation capacity
+                if (data == null || data.Count == 0)
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "No data available. This may be due to null generation capacity records or no data for the specified criteria.",
+                        errorDetails = "Please check the data for the bill cycle or contact the administrator."
+                    });
+                }
+
+                return Ok(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get PV capacity summary data.",
                     errorDetails = ex.Message
                 });
             }
