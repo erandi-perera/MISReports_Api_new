@@ -2,6 +2,7 @@
 using MISReports_Api.DAL.SolarInformation.SolarPVConnections;
 using MISReports_Api.DAL.SolarInformation.SolarPaymentRetail;
 using MISReports_Api.DAL.SolarInformation.SolarPVCapacity;
+using MISReports_Api.DAL.SolarInformation;
 using MISReports_Api.DAL.Shared;
 using MISReports_Api.Models.SolarInformation;
 using Newtonsoft.Json.Linq;
@@ -37,6 +38,7 @@ namespace MISReports_Api.Controllers
         private readonly PVCapacityOrdinaryDao _pvCapacityOrdinaryDao = new PVCapacityOrdinaryDao();
         private readonly PVCapacityBulkDao _pvCapacityBulkDao = new PVCapacityBulkDao();
         private readonly PVCapacitySummaryDao _pvCapacitySummaryDao = new PVCapacitySummaryDao();
+        private readonly SolarPaymentBulkDao _solarPaymentBulkDao = new SolarPaymentBulkDao();
 
         [HttpGet]
         [Route("areas")]
@@ -721,20 +723,27 @@ namespace MISReports_Api.Controllers
             }
         }
 
-        private string ValidateRequestParameters(SolarProgressRequest request)
+        /// <summary>
+        /// Common validation method for report type parameters
+        /// </summary>
+        private string ValidateReportTypeParameters(
+            SolarReportType reportType,
+            string areaCode,
+            string provCode,
+            string region)
         {
-            switch (request.ReportType)
+            switch (reportType)
             {
                 case SolarReportType.Area:
-                    if (string.IsNullOrEmpty(request.AreaCode))
+                    if (string.IsNullOrEmpty(areaCode))
                         return "Area code is required for Area report type.";
                     break;
                 case SolarReportType.Province:
-                    if (string.IsNullOrEmpty(request.ProvCode))
+                    if (string.IsNullOrEmpty(provCode))
                         return "Province code is required for Province report type.";
                     break;
                 case SolarReportType.Region:
-                    if (string.IsNullOrEmpty(request.Region))
+                    if (string.IsNullOrEmpty(region))
                         return "Region is required for Region report type.";
                     break;
                 case SolarReportType.EntireCEB:
@@ -744,6 +753,16 @@ namespace MISReports_Api.Controllers
             }
 
             return null;
+        }
+
+        private string ValidateRequestParameters(SolarProgressRequest request)
+        {
+            return ValidateReportTypeParameters(
+                request.ReportType,
+                request.AreaCode,
+                request.ProvCode,
+                request.Region
+            );
         }
 
         [HttpGet]
@@ -924,27 +943,12 @@ namespace MISReports_Api.Controllers
 
         private string ValidatePVBulkConnectionParameters(SolarPVBulkConnectionRequest request)
         {
-            switch (request.ReportType)
-            {
-                case SolarReportType.Area:
-                    if (string.IsNullOrEmpty(request.AreaCode))
-                        return "Area code is required for Area report type.";
-                    break;
-                case SolarReportType.Province:
-                    if (string.IsNullOrEmpty(request.ProvCode))
-                        return "Province code is required for Province report type.";
-                    break;
-                case SolarReportType.Region:
-                    if (string.IsNullOrEmpty(request.Region))
-                        return "Region is required for Region report type.";
-                    break;
-                case SolarReportType.EntireCEB:
-                    break;
-                default:
-                    return "Invalid report type specified.";
-            }
-
-            return null;
+            return ValidateReportTypeParameters(
+                request.ReportType,
+                request.AreaCode,
+                request.ProvCode,
+                request.Region
+            );
         }
 
 
@@ -995,27 +999,12 @@ namespace MISReports_Api.Controllers
 
         private string ValidatePVConnectionParameters(SolarPVConnectionRequest request)
         {
-            switch (request.ReportType)
-            {
-                case SolarReportType.Area:
-                    if (string.IsNullOrEmpty(request.AreaCode))
-                        return "Area code is required for Area report type.";
-                    break;
-                case SolarReportType.Province:
-                    if (string.IsNullOrEmpty(request.ProvCode))
-                        return "Province code is required for Province report type.";
-                    break;
-                case SolarReportType.Region:
-                    if (string.IsNullOrEmpty(request.Region))
-                        return "Region is required for Region report type.";
-                    break;
-                case SolarReportType.EntireCEB:
-                    break;
-                default:
-                    return "Invalid report type specified.";
-            }
-
-            return null;
+            return ValidateReportTypeParameters(
+                request.ReportType,
+                request.AreaCode,
+                request.ProvCode,
+                request.Region
+            );
         }
 
         [HttpGet]
@@ -1138,27 +1127,12 @@ namespace MISReports_Api.Controllers
 
         private string ValidateRetailDetailedParameters(RetailDetailedRequest request)
         {
-            switch (request.ReportType)
-            {
-                case SolarReportType.Area:
-                    if (string.IsNullOrEmpty(request.AreaCode))
-                        return "Area code is required for Area report type.";
-                    break;
-                case SolarReportType.Province:
-                    if (string.IsNullOrEmpty(request.ProvCode))
-                        return "Province code is required for Province report type.";
-                    break;
-                case SolarReportType.Region:
-                    if (string.IsNullOrEmpty(request.Region))
-                        return "Region is required for Region report type.";
-                    break;
-                case SolarReportType.EntireCEB:
-                    break;
-                default:
-                    return "Invalid report type specified.";
-            }
-
-            return null;
+            return ValidateReportTypeParameters(
+                request.ReportType,
+                request.AreaCode,
+                request.ProvCode,
+                request.Region
+            );
         }
 
         [HttpGet]
@@ -1645,8 +1619,123 @@ namespace MISReports_Api.Controllers
                 });
             }
         }
+        [HttpGet]
+        [Route("solarPayment/bulk")]
+        public IHttpActionResult GetSolarPaymentBulkReport(
+            [FromUri] string billCycle,
+            [FromUri] string netType = "1",   // Net type filter (1, 2, 3, 4, 5)
+            [FromUri] string reportType = "entireceb",
+            [FromUri] string typeCode = null)
+        {
+            var validationErrors = new List<string>();
+
+            // Validate bill cycle parameter
+            if (string.IsNullOrWhiteSpace(billCycle))
+                validationErrors.Add("Bill cycle is required.");
+
+            // Validate net type
+            if (string.IsNullOrWhiteSpace(netType))
+                validationErrors.Add("Net type is required.");
+            else if (!new[] { "1", "2", "3", "4", "5" }.Contains(netType))
+                validationErrors.Add("Net type must be 1, 2, 3, 4, or 5.");
+
+            if (validationErrors.Count > 0)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = string.Join("; ", validationErrors)
+                });
+            }
+
+            var request = new SolarPaymentBulkRequest
+            {
+                BillCycle = billCycle,
+                NetType = netType
+            };
+
+            switch (reportType.ToLower())
+            {
+                case "area":
+                    request.ReportType = SolarReportType.Area;
+                    request.AreaCode = typeCode;
+                    break;
+                case "province":
+                    request.ReportType = SolarReportType.Province;
+                    request.ProvCode = typeCode;
+                    break;
+                case "region":
+                    request.ReportType = SolarReportType.Region;
+                    request.Region = typeCode;
+                    break;
+                case "entireceb":
+                    request.ReportType = SolarReportType.EntireCEB;
+                    break;
+                default:
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Invalid report type.",
+                        errorDetails = "Valid types: Area, Province, Region, EntireCEB."
+                    });
+            }
+
+            return ProcessSolarPaymentBulkRequest(request);
+        }
+
+        private IHttpActionResult ProcessSolarPaymentBulkRequest(SolarPaymentBulkRequest request)
+        {
+            try
+            {
+                if (!_solarPaymentBulkDao.TestConnection(out string connError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    });
+                }
+
+                string typeValidationError = ValidateSolarPaymentBulkParameters(request);
+                if (!string.IsNullOrEmpty(typeValidationError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = typeValidationError,
+                        errorDetails = "Invalid request parameters."
+                    });
+                }
+
+                var data = _solarPaymentBulkDao.GetSolarPaymentBulkReport(request);
+
+                return Ok(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get solar payment bulk report data.",
+                    errorDetails = ex.Message
+                });
+            }
+        }
+
+        private string ValidateSolarPaymentBulkParameters(SolarPaymentBulkRequest request)
+        {
+            return ValidateReportTypeParameters(
+                request.ReportType,
+                request.AreaCode,
+                request.ProvCode,
+                request.Region
+            );
+        }
 
     }
 }
-
-

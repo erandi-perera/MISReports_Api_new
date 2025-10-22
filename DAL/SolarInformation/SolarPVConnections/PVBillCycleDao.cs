@@ -18,14 +18,14 @@ namespace MISReports_Api.DAL.SolarInformation.SolarPVConnections
             try
             {
                 // Test the connection first
-                bool connectionTest = _dbConnection.TestConnection(out string testError, false);
+                bool connectionTest = _dbConnection.TestConnection(out string testError, true);
                 if (!connectionTest)
                 {
                     model.ErrorMessage = $"Connection test failed: {testError}";
                     return model;
                 }
 
-                using (var conn = _dbConnection.GetConnection(useBulkConnection: false))
+                using (var conn = _dbConnection.GetConnection(useBulkConnection: true))
                 {
                     conn.Open();
                     System.Diagnostics.Trace.WriteLine("Database connection opened successfully");

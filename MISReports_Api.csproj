@@ -297,6 +297,7 @@
     <Compile Include="Controllers\WorkInProgController\ProjectCommitmentSummaryController.cs" />
     <Compile Include="Controllers\WorkInProgController\WorkInProgressCompletedCostCenterwiseController.cs" />
     <Compile Include="DAL\Inventory\InventoryOnHandRepository.cs" />
+    <Compile Include="DAL\SolarInformation\SolarPaymentBulkDao.cs" />
     <Compile Include="DAL\SolarInformation\SolarPVCapacity\PVCapacityBulkDao.cs" />
     <Compile Include="DAL\SolarInformation\SolarPVCapacity\PVCapacityOrdinaryDao.cs" />
     <Compile Include="DAL\SolarInformation\SolarPVCapacity\PVCapacityBillCycleDao.cs" />
@@ -359,6 +360,7 @@
     <Compile Include="Models\SolarInformation\PVCapacityModel.cs" />
     <Compile Include="Models\SolarInformation\RetailDetailedModel.cs" />
     <Compile Include="Models\SolarInformation\RetailSummaryModel.cs" />
+    <Compile Include="Models\SolarInformation\SolarPaymentBulkModel.cs" />
     <Compile Include="Models\SolarInformation\SolarProgressDetailedModel.cs" />
     <Compile Include="Models\SolarInformation\SolarProgressSummaryModel.cs" />
     <Compile Include="Models\TrialBalance\CompanyTrialBalanceModel.cs" />
