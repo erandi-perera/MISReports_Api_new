@@ -7,9 +7,9 @@ using System.Data;
 using System.Data.OleDb;
 using NLog;
 
-namespace MISReports_Api.DAL.SolarProgressClarification
+namespace MISReports_Api.DAL.SolarInformation.SolarProgressClarification
 {
-    public class OrdinaryDetailedDao
+    public class DetailedDao
     {
         private readonly DBConnection _dbConnection = new DBConnection();
         private static readonly Logger logger = LogManager.GetCurrentClassLogger(); // Add logger instance
@@ -21,9 +21,9 @@ namespace MISReports_Api.DAL.SolarProgressClarification
             try
             {
                 logger.Debug("=== Testing Connection ===");
-                logger.Debug($"Connection String: {_dbConnection.OrdinaryConnectionString}");
+                logger.Debug($"Connection String: {_dbConnection.BulkConnectionString}");
 
-                var builder = new OleDbConnectionStringBuilder(_dbConnection.OrdinaryConnectionString);
+                var builder = new OleDbConnectionStringBuilder(_dbConnection.BulkConnectionString);
                 logger.Debug($"Data Source: {builder.DataSource}");
                 logger.Debug($"Provider: {builder.Provider}");
 
@@ -41,7 +41,7 @@ namespace MISReports_Api.DAL.SolarProgressClarification
                     return false;
                 }
 
-                using (var conn = _dbConnection.GetConnection(false)) // Changed to use ordinary connection
+                using (var conn = _dbConnection.GetConnection())
                 {
                     logger.Debug("Attempting to open connection...");
                     conn.Open();
@@ -72,7 +72,7 @@ namespace MISReports_Api.DAL.SolarProgressClarification
             }
         }
 
-        public List<SolarProgressDetailedModel> GetOrdinaryDetailedReport(SolarProgressRequest request)
+        public List<SolarProgressDetailedModel> GetDetailedReport(SolarProgressRequest request)
         {
             var results = new List<SolarProgressDetailedModel>();
 
@@ -84,7 +84,7 @@ namespace MISReports_Api.DAL.SolarProgressClarification
                 string sql = BuildSqlQuery(request);
                 logger.Debug($"Generated SQL: {sql}");
 
-                using (var conn = _dbConnection.GetConnection(false)) // Changed to use ordinary connection
+                using (var conn = _dbConnection.GetConnection())
                 {
                     logger.Debug("Opening database connection...");
                     conn.Open();
@@ -162,22 +162,22 @@ namespace MISReports_Api.DAL.SolarProgressClarification
             {
                 case SolarReportType.Area:
                     baseQuery += " AND n.area_code = ?";
-                    baseQuery += " ORDER BY n.acct_number";
+                    baseQuery += " ORDER BY a.area_name ASC, n.acc_nbr";
                     break;
 
                 case SolarReportType.Province:
                     baseQuery += " AND a.prov_code = ?";
-                    baseQuery += " ORDER BY a.area_code, n.acct_number";
+                    baseQuery += " ORDER BY a.area_name ASC, n.acc_nbr";
                     break;
 
                 case SolarReportType.Region:
                     baseQuery += " AND a.region = ?";
-                    baseQuery += " ORDER BY a.area_code, n.acct_number";
+                    baseQuery += " ORDER BY p.prov_name ASC, a.area_name ASC, n.acc_nbr";
                     break;
 
                 case SolarReportType.EntireCEB:
                 default:
-                    baseQuery += " ORDER BY a.region ASC, a.area_code, n.acct_number";
+                    baseQuery += " ORDER BY a.region ASC, p.prov_name ASC, a.area_name ASC, n.acc_nbr";
                     break;
             }
 
@@ -207,7 +207,7 @@ namespace MISReports_Api.DAL.SolarProgressClarification
                     Region = GetColumnValue(reader, "region"),
                     Province = GetColumnValue(reader, "prov_name"),
                     Area = GetColumnValue(reader, "area_name"),
-                    AccountNumber = GetColumnValue(reader, "acct_number"),
+                    AccountNumber = GetColumnValue(reader, "acc_nbr"),
                     NetType = MapNetType(rawNetChg),
                     Description = MapDescription(GetColumnValue(reader, "chg_code")),
                     Capacity = GetDecimalValue(reader, "cap_chg"),
@@ -358,8 +358,10 @@ namespace MISReports_Api.DAL.SolarProgressClarification
                 case "4":
                 case "44":
                     return "Net Plus Plus";
+                case "21":
+                    return "Net Metering";
                 default:
-                    return "Convert from Net Metering to Net Accounting";
+                    return "Net Accounting";
             }
         }
 
