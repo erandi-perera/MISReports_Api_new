@@ -17,7 +17,7 @@ namespace MISReports_Api.DAL
 
             Debug.WriteLine($"GetProjectAgeAnalysis started for deptId: {deptId}");
 
-            string[] connectionStringNames = { "Darcon16Oracle" };
+            string[] connectionStringNames = { "HQOracle" };
 
             foreach (var connectionStringName in connectionStringNames)
             {
@@ -32,7 +32,7 @@ namespace MISReports_Api.DAL
 
                         string sql = @"
                             SELECT DISTINCT
-                                (CASE 
+                                (CASE
                                     WHEN ROUND(MONTHS_BETWEEN(SYSDATE, T1.prj_ass_dt), 0) <= 3 THEN 'Months 0-3'
                                     WHEN ROUND(MONTHS_BETWEEN(SYSDATE, T1.prj_ass_dt), 0) <= 6 THEN 'Months 3-6'
                                     WHEN ROUND(MONTHS_BETWEEN(SYSDATE, T1.prj_ass_dt), 0) <= 9 THEN 'Months 6-9'
@@ -41,7 +41,7 @@ namespace MISReports_Api.DAL
                                     WHEN ROUND(MONTHS_BETWEEN(SYSDATE, T1.prj_ass_dt), 0) <= 36 THEN 'Years 2-3'
                                     WHEN ROUND(MONTHS_BETWEEN(SYSDATE, T1.prj_ass_dt), 0) <= 48 THEN 'Years 3-4'
                                     WHEN ROUND(MONTHS_BETWEEN(SYSDATE, T1.prj_ass_dt), 0) <= 60 THEN 'Years 4-5'
-                                    ELSE 'Years 5 Over' 
+                                    ELSE 'Years 5 Over'
                                 END) AS Period,
                                 COUNT(T1.project_no) AS no_of_projects,
                                 (SELECT dept_nm FROM gldeptm WHERE dept_id = :deptId) AS cct_name
@@ -49,8 +49,8 @@ namespace MISReports_Api.DAL
                             WHERE T1.dept_id = :deptId
                               AND T1.cat_cd NOT IN ('MTN','MAIN','MAINT','MTN_TL','MTN_TL_REH','BDJ','7840','LSF','MAINTENANCE','AMU','MNT','EMU','PSF','FSM')
                               AND T1.status <> 3
-                            GROUP BY 
-                                (CASE 
+                            GROUP BY
+                                (CASE
                                     WHEN ROUND(MONTHS_BETWEEN(SYSDATE, T1.prj_ass_dt), 0) <= 3 THEN 'Months 0-3'
                                     WHEN ROUND(MONTHS_BETWEEN(SYSDATE, T1.prj_ass_dt), 0) <= 6 THEN 'Months 3-6'
                                     WHEN ROUND(MONTHS_BETWEEN(SYSDATE, T1.prj_ass_dt), 0) <= 9 THEN 'Months 6-9'
@@ -59,7 +59,7 @@ namespace MISReports_Api.DAL
                                     WHEN ROUND(MONTHS_BETWEEN(SYSDATE, T1.prj_ass_dt), 0) <= 36 THEN 'Years 2-3'
                                     WHEN ROUND(MONTHS_BETWEEN(SYSDATE, T1.prj_ass_dt), 0) <= 48 THEN 'Years 3-4'
                                     WHEN ROUND(MONTHS_BETWEEN(SYSDATE, T1.prj_ass_dt), 0) <= 60 THEN 'Years 4-5'
-                                    ELSE 'Years 5 Over' 
+                                    ELSE 'Years 5 Over'
                                 END)
                             ORDER BY 1 ASC";
 

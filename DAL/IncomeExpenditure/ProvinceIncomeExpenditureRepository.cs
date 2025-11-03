@@ -9,7 +9,7 @@ namespace MISReports_Api.DAL
     public class ProvinceIncomeExpenditureRepository
     {
         private readonly string connectionString =
-            ConfigurationManager.ConnectionStrings["Darcon16Oracle"].ConnectionString;
+            ConfigurationManager.ConnectionStrings["HQOracle"].ConnectionString;
 
         public List<ProvinceIncomeExpenditureModel> GetProvinceIncomeExpenditure(
             string compId, string repYear, string repMonth)

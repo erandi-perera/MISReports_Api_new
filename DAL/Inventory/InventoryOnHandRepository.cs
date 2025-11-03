@@ -17,7 +17,7 @@ namespace MISReports_Api.DAL
 
             Debug.WriteLine($"GetInventoryOnHand started for deptId: {deptId}, matCode: {matCode}");
 
-            string[] connectionStringNames = { "Darcon16Oracle", "DefaultOracle", "HQOracle" };
+            string[] connectionStringNames = { "HQOracle" };
 
             foreach (var connectionStringName in connectionStringNames)
             {
@@ -31,7 +31,7 @@ namespace MISReports_Api.DAL
                         await conn.OpenAsync();
 
                         string sql = @"
-SELECT 
+SELECT
     A.mat_cd       AS MAT_CD,
     D.mat_nm       AS MAT_NM,
     A.grade_cd     AS GRD_CD,
@@ -41,22 +41,22 @@ SELECT
     A.unit_price       AS UNIT_PRICE,
     SUM(A.unit_price * A.qty_on_hand) AS VALUE,
     (SELECT dept_nm FROM gldeptm WHERE dept_id = :deptId) AS CCT_NAME
-FROM 
+FROM
     inwrhmtm A
-INNER JOIN 
-    inmatm D 
+INNER JOIN
+    inmatm D
     ON A.mat_cd = D.mat_cd
-WHERE 
+WHERE
     A.dept_id = :deptId
     AND (:matCode IS NULL OR :matCode = '' OR A.mat_cd LIKE :matCode || '%')
     AND A.status IN (2, 7)
-GROUP BY 
-    A.mat_cd, 
-    D.mat_nm, 
-    A.grade_cd, 
-    D.maj_uom, 
+GROUP BY
+    A.mat_cd,
+    D.mat_nm,
+    A.grade_cd,
+    D.maj_uom,
     A.unit_price
-ORDER BY 
+ORDER BY
     A.mat_cd";
 
                         using (var cmd = new OracleCommand(sql, conn))
