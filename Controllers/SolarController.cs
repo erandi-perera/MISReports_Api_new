@@ -2,6 +2,7 @@
 using MISReports_Api.DAL.SolarInformation.SolarPVConnections;
 using MISReports_Api.DAL.SolarInformation.SolarPaymentRetail;
 using MISReports_Api.DAL.SolarInformation.SolarPVCapacity;
+using MISReports_Api.DAL.SolarInformation.SolarConnectionDetails;
 using MISReports_Api.DAL.SolarInformation;
 using MISReports_Api.DAL.Shared;
 using MISReports_Api.Models.SolarInformation;
@@ -39,6 +40,8 @@ namespace MISReports_Api.Controllers
         private readonly PVCapacityBulkDao _pvCapacityBulkDao = new PVCapacityBulkDao();
         private readonly PVCapacitySummaryDao _pvCapacitySummaryDao = new PVCapacitySummaryDao();
         private readonly SolarPaymentBulkDao _solarPaymentBulkDao = new SolarPaymentBulkDao();
+        private readonly SolarReadingRetailDetailedDao _solarReadingDetailedDao = new SolarReadingRetailDetailedDao();
+        private readonly SolarReadingRetailSummaryDao _solarReadingSummaryDao = new SolarReadingRetailSummaryDao();
 
         [HttpGet]
         [Route("areas")]
@@ -1735,6 +1738,213 @@ namespace MISReports_Api.Controllers
                 request.ProvCode,
                 request.Region
             );
+        }
+
+
+        [HttpGet]
+        [Route("solarConnectionDetails/retail/detailed")]
+        public IHttpActionResult GetSolarConnectionDetailsRetailDetailedReport(
+            [FromUri] string cycleType = "A",     // A = BillCycle, B = CalcCycle
+            [FromUri] string billCycle = null,
+            [FromUri] string calcCycle = null,
+            [FromUri] string netType = "1",
+            [FromUri] string reportType = "entireceb",
+            [FromUri] string typeCode = null)
+        {
+            var validationErrors = new List<string>();
+
+            // Validate cycle parameters
+            if (cycleType == "A" && string.IsNullOrWhiteSpace(billCycle))
+                validationErrors.Add("Bill cycle is required when cycle type is 'A'.");
+            if (cycleType == "B" && string.IsNullOrWhiteSpace(calcCycle))
+                validationErrors.Add("Calc cycle is required when cycle type is 'B'.");
+
+            // Validate net type
+            if (string.IsNullOrWhiteSpace(netType))
+                validationErrors.Add("Net type is required.");
+            else if (!new[] { "1", "2", "3", "4", "5" }.Contains(netType))
+                validationErrors.Add("Net type must be 1, 2, 3, 4, or 5.");
+
+            if (validationErrors.Count > 0)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = string.Join("; ", validationErrors)
+                });
+            }
+
+            var request = new RetailDetailedRequest
+            {
+                CycleType = cycleType,
+                BillCycle = billCycle,
+                CalcCycle = calcCycle,
+                NetType = netType
+            };
+
+            switch (reportType.ToLower())
+            {
+                case "area":
+                    request.ReportType = SolarReportType.Area;
+                    request.AreaCode = typeCode;
+                    break;
+                case "province":
+                    request.ReportType = SolarReportType.Province;
+                    request.ProvCode = typeCode;
+                    break;
+                case "region":
+                    request.ReportType = SolarReportType.Region;
+                    request.Region = typeCode;
+                    break;
+                case "entireceb":
+                    request.ReportType = SolarReportType.EntireCEB;
+                    break;
+                default:
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Invalid report type.",
+                        errorDetails = "Valid types: Area, Province, Region, EntireCEB."
+                    });
+            }
+
+            return ProcessSolarReadingDetailedRequest(request);
+        }
+
+        private IHttpActionResult ProcessSolarReadingDetailedRequest(RetailDetailedRequest request)
+        {
+            try
+            {
+                if (!_solarReadingDetailedDao.TestConnection(out string connError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    });
+                }
+
+                var data = _solarReadingDetailedDao.GetSolarReadingDetailedReport(request);
+
+                return Ok(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get solar reading detailed report data.",
+                    errorDetails = ex.Message
+                });
+            }
+        }
+
+        [HttpGet]
+        [Route("solarConnectionDetails/retail/summary")]
+        public IHttpActionResult GetSolarConnectionDetailsRetailSummaryReport(
+            [FromUri] string cycleType = "A",     // A = BillCycle, B = CalcCycle
+            [FromUri] string billCycle = null,
+            [FromUri] string calcCycle = null,
+            [FromUri] string netType = "1",
+            [FromUri] string reportType = "entireceb",
+            [FromUri] string typeCode = null)
+        {
+            var validationErrors = new List<string>();
+
+            // Validate cycle parameters
+            if (cycleType == "A" && string.IsNullOrWhiteSpace(billCycle))
+                validationErrors.Add("Bill cycle is required when cycle type is 'A'.");
+            if (cycleType == "B" && string.IsNullOrWhiteSpace(calcCycle))
+                validationErrors.Add("Calc cycle is required when cycle type is 'B'.");
+
+            // Validate net type
+            if (string.IsNullOrWhiteSpace(netType))
+                validationErrors.Add("Net type is required.");
+            else if (!new[] { "1", "2", "3", "4", "5" }.Contains(netType))
+                validationErrors.Add("Net type must be 1, 2, 3, 4, or 5.");
+
+            if (validationErrors.Count > 0)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = string.Join("; ", validationErrors)
+                });
+            }
+
+            var request = new RetailDetailedRequest
+            {
+                CycleType = cycleType,
+                BillCycle = billCycle,
+                CalcCycle = calcCycle,
+                NetType = netType
+            };
+
+            switch (reportType.ToLower())
+            {
+                case "area":
+                    request.ReportType = SolarReportType.Area;
+                    request.AreaCode = typeCode;
+                    break;
+                case "province":
+                    request.ReportType = SolarReportType.Province;
+                    request.ProvCode = typeCode;
+                    break;
+                case "region":
+                    request.ReportType = SolarReportType.Region;
+                    request.Region = typeCode;
+                    break;
+                case "entireceb":
+                    request.ReportType = SolarReportType.EntireCEB;
+                    break;
+                default:
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Invalid report type.",
+                        errorDetails = "Valid types: Area, Province, Region, EntireCEB."
+                    });
+            }
+
+            return ProcessSolarReadingSummaryRequest(request);
+        }
+
+        private IHttpActionResult ProcessSolarReadingSummaryRequest(RetailDetailedRequest request)
+        {
+            try
+            {
+                if (!_solarReadingSummaryDao.TestConnection(out string connError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    });
+                }
+
+                var data = _solarReadingSummaryDao.GetSolarReadingSummaryReport(request);
+
+                return Ok(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get solar reading summary report data.",
+                    errorDetails = ex.Message
+                });
+            }
         }
 
     }
