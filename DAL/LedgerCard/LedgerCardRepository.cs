@@ -15,60 +15,72 @@ namespace MISReports_Api.DAL
             var result = new List<LedgerCardModel>();
 
             string sql = @"
-    SELECT
-        T1.gl_cd AS GlCd,
-        T1.sub_ac AS SubAc,
-        T2.remarks AS Remarks,
-        T2.acct_dt AS AcctDt,
-        T1.doc_pf AS DocPf,
-        T1.doc_no AS DocNo,
-        T2.ref_1 AS Ref1,
-        T2.chq_no AS ChqNo,
-        T1.cr_amt AS CrAmt,
-        T1.dr_amt AS DrAmt,
-        T5.op_bal AS OpeningBalance,
-        T6.cl_bal AS ClosingBalance,
-        T1.seq_no AS SeqNo,
-        T2.log_mth AS LogMth,
-        (SELECT gl_nm FROM glledgrm WHERE TRIM(gl_cd) = :GLCODE) AS AcName,
-        (SELECT ac_nm
-            FROM glsubacm
-            WHERE TRIM(gl_cd) = :GLCODE
-              AND sub_ac = T1.sub_ac
-              AND status = 2) AS AcName1,
-        (SELECT dept_nm
-            FROM gldeptm
-            WHERE dept_id = SUBSTR(:GLCODE, 1, 6)) AS CctName
-    FROM
-        glvocdmt T1
-        INNER JOIN glvochmt T2
-            ON T1.doc_no = T2.doc_no
-           AND T1.batch_id = T2.batch_id
-           AND T1.doc_pf = T2.doc_pf
-           AND T1.dept_id = T2.dept_id
-        INNER JOIN glsubbal T5
-            ON T1.gl_cd = T5.gl_cd
-           AND T1.sub_ac = T5.sub_ac
-           AND T5.yr_ind = :REPYEAR
-           AND T5.mth_ind = :STARTMONTH
-        INNER JOIN glsubbal T6
-            ON T1.gl_cd = T6.gl_cd
-           AND T1.sub_ac = T6.sub_ac
-           AND T6.yr_ind = :REPYEAR
-           AND T6.mth_ind = :ENDMONTH
-    WHERE
-        TRIM(T1.gl_cd) = :GLCODE
-        AND T2.status = 6
-        AND T2.log_yr = :REPYEAR
-        AND T2.log_mth BETWEEN :STARTMONTH AND :ENDMONTH
-    GROUP BY
-        T1.gl_cd, T1.doc_pf, T1.doc_no, T2.log_mth, T1.sub_ac,
-        T2.acct_dt, T2.chq_no, T2.ref_1, T1.cr_amt, T1.dr_amt,
-        T5.op_bal, T6.cl_bal, T2.remarks, T1.seq_no
-    ORDER BY
-        T1.gl_cd, T1.sub_ac, T2.log_mth, T2.acct_dt,
-        T1.doc_pf, T1.doc_no, T2.chq_no, T2.ref_1,
-        T1.cr_amt, T1.dr_amt";
+   SELECT
+    T1.gl_cd AS GlCd,
+    T1.sub_ac AS SubAc,
+    T2.remarks AS Remarks,
+    T2.acct_dt AS AcctDt,
+    T1.doc_pf AS DocPf,
+    T1.doc_no AS DocNo,
+    T2.ref_1 AS Ref1,
+    T2.chq_no AS ChqNo,
+    T1.cr_amt AS CrAmt,
+    T1.dr_amt AS DrAmt,
+    T5.op_bal AS OpeningBalance,
+    T6.cl_bal AS ClosingBalance,
+    T1.seq_no AS SeqNo,
+    T2.log_mth AS LogMth,
+    (SELECT T4.op_bal
+       FROM gllegbal T4
+      WHERE TRIM(T4.gl_cd) = :GLCODE
+        AND T4.yr_ind = :REPYEAR
+        AND T4.mth_ind = :STARTMONTH) AS OpBal,
+    (SELECT T4.cl_bal
+       FROM gllegbal T4
+      WHERE TRIM(T4.gl_cd) = :GLCODE
+        AND T4.yr_ind = :REPYEAR
+        AND T4.mth_ind = :ENDMONTH) AS ClBal,
+    (SELECT gl_nm
+       FROM glledgrm
+      WHERE TRIM(gl_cd) = :GLCODE) AS AcName,
+    (SELECT ac_nm
+       FROM glsubacm
+      WHERE TRIM(gl_cd) = :GLCODE
+        AND sub_ac = T1.sub_ac
+        AND status = 2) AS AcName1,
+    (SELECT dept_nm
+       FROM gldeptm
+      WHERE dept_id = SUBSTR(:GLCODE, 1, 6)) AS CctName
+FROM
+    glvocdmt T1
+    INNER JOIN glvochmt T2
+        ON T1.doc_no = T2.doc_no
+       AND T1.batch_id = T2.batch_id
+       AND T1.doc_pf = T2.doc_pf
+       AND T1.dept_id = T2.dept_id
+    INNER JOIN glsubbal T5
+        ON T1.gl_cd = T5.gl_cd
+       AND T1.sub_ac = T5.sub_ac
+       AND T5.yr_ind = :REPYEAR
+       AND T5.mth_ind = :STARTMONTH
+    INNER JOIN glsubbal T6
+        ON T1.gl_cd = T6.gl_cd
+       AND T1.sub_ac = T6.sub_ac
+       AND T6.yr_ind = :REPYEAR
+       AND T6.mth_ind = :ENDMONTH
+WHERE
+    TRIM(T1.gl_cd) = :GLCODE
+    AND T2.status = 6
+    AND T2.log_yr = :REPYEAR
+    AND T2.log_mth BETWEEN :STARTMONTH AND :ENDMONTH
+GROUP BY
+    T1.gl_cd, T1.doc_pf, T1.doc_no, T2.log_mth, T1.sub_ac,
+    T2.acct_dt, T2.chq_no, T2.ref_1, T1.cr_amt, T1.dr_amt,
+    T5.op_bal, T6.cl_bal, T2.remarks, T1.seq_no
+ORDER BY
+    T1.gl_cd, T1.sub_ac, T2.log_mth, T2.acct_dt,
+    T1.doc_pf, T1.doc_no, T2.chq_no, T2.ref_1,
+    T1.cr_amt, T1.dr_amt";
 
             using (var connection = new OracleConnection(connectionString))
             {
@@ -105,6 +117,8 @@ namespace MISReports_Api.DAL
                                     LogMth = SafeGetInt32(reader, "LogMth"),
                                     OpeningBalance = SafeGetDecimal(reader, "OpeningBalance"),
                                     ClosingBalance = SafeGetDecimal(reader, "ClosingBalance"),
+                                    GLOpeningBalance = SafeGetDecimal(reader, "OpBal"),
+                                    GLClosingBalance = SafeGetDecimal(reader, "ClBal"),
                                     AcName = SafeGetString(reader, "AcName"),
                                     AcName1 = SafeGetString(reader, "AcName1"),
                                     CctName = SafeGetString(reader, "CctName")
