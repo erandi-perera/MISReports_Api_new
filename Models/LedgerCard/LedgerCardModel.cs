@@ -18,6 +18,8 @@ namespace MISReports_Api.Models
         public int? LogMth { get; set; }
         public decimal? OpeningBalance { get; set; }
         public decimal? ClosingBalance { get; set; }
+        public decimal? GLOpeningBalance { get; set; }
+        public decimal? GLClosingBalance { get; set; }
         public string AcName { get; set; }
         public string AcName1 { get; set; }
         public string CctName { get; set; }
