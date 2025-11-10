@@ -42,6 +42,7 @@ namespace MISReports_Api.Controllers
         private readonly SolarPaymentBulkDao _solarPaymentBulkDao = new SolarPaymentBulkDao();
         private readonly SolarReadingRetailDetailedDao _solarReadingDetailedDao = new SolarReadingRetailDetailedDao();
         private readonly SolarReadingRetailSummaryDao _solarReadingSummaryDao = new SolarReadingRetailSummaryDao();
+        private readonly SolarReadingUsageBulkDao _solarReadingUsageBulkDao = new SolarReadingUsageBulkDao();
 
         [HttpGet]
         [Route("areas")]
@@ -1942,6 +1943,134 @@ namespace MISReports_Api.Controllers
                 {
                     data = (object)null,
                     errorMessage = "Cannot get solar reading summary report data.",
+                    errorDetails = ex.Message
+                });
+            }
+        }
+
+        [HttpGet]
+        [Route("solarConnectionDetails/bulk")]
+        public IHttpActionResult GetSolarConnectionDetailsBulkReport(
+            [FromUri] string addedBillCycle = null,
+            [FromUri] string billCycle = null,
+            [FromUri] string netType = "1",
+            [FromUri] string reportType = "entireceb",
+            [FromUri] string typeCode = null)
+        {
+            var validationErrors = new List<string>();
+
+            // Validate required parameters
+            if (string.IsNullOrWhiteSpace(addedBillCycle))
+                validationErrors.Add("Added bill cycle (added_blcy) is required.");
+
+            if (string.IsNullOrWhiteSpace(billCycle))
+                validationErrors.Add("Bill cycle is required.");
+
+            // Validate net type
+            if (string.IsNullOrWhiteSpace(netType))
+                validationErrors.Add("Net type is required.");
+            else if (!new[] { "1", "2", "3", "4", "5" }.Contains(netType))
+                validationErrors.Add("Net type must be 1, 2, 3, 4, or 5.");
+
+            if (validationErrors.Count > 0)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = string.Join("; ", validationErrors)
+                });
+            }
+
+            var request = new BulkUsageRequest
+            {
+                AddedBillCycle = addedBillCycle,
+                BillCycle = billCycle,
+                NetType = netType
+            };
+
+            switch (reportType.ToLower())
+            {
+                case "area":
+                    request.ReportType = SolarReportType.Area;
+                    request.AreaCode = typeCode;
+                    if (string.IsNullOrWhiteSpace(typeCode))
+                    {
+                        return Ok(new
+                        {
+                            data = (object)null,
+                            errorMessage = "Area code is required for area report type."
+                        });
+                    }
+                    break;
+                case "province":
+                    request.ReportType = SolarReportType.Province;
+                    request.ProvCode = typeCode;
+                    if (string.IsNullOrWhiteSpace(typeCode))
+                    {
+                        return Ok(new
+                        {
+                            data = (object)null,
+                            errorMessage = "Province code is required for province report type."
+                        });
+                    }
+                    break;
+                case "region":
+                    request.ReportType = SolarReportType.Region;
+                    request.Region = typeCode;
+                    if (string.IsNullOrWhiteSpace(typeCode))
+                    {
+                        return Ok(new
+                        {
+                            data = (object)null,
+                            errorMessage = "Region is required for region report type."
+                        });
+                    }
+                    break;
+                case "entireceb":
+                    request.ReportType = SolarReportType.EntireCEB;
+                    break;
+                default:
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Invalid report type.",
+                        errorDetails = "Valid types: Area, Province, Region, EntireCEB."
+                    });
+            }
+
+            return ProcessSolarReadingUsageBulkRequest(request);
+        }
+
+        // 3. Add this helper method:
+
+        private IHttpActionResult ProcessSolarReadingUsageBulkRequest(BulkUsageRequest request)
+        {
+            try
+            {
+                if (!_solarReadingUsageBulkDao.TestConnection(out string connError))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    });
+                }
+
+                var data = _solarReadingUsageBulkDao.GetSolarReadingUsageBulkReport(request);
+
+                return Ok(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get solar reading usage bulk report data.",
                     errorDetails = ex.Message
                 });
             }
