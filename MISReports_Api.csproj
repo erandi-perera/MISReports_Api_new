@@ -309,6 +309,7 @@
     <Compile Include="DAL\SolarInformation\SolarConnectionDetails\SolarReadingRetailDetailedDao.cs" />
     <Compile Include="DAL\SolarInformation\SolarConnectionDetails\SolarReadingRetailSummaryDao.cs" />
     <Compile Include="DAL\LedgerCard\LedgerCardRepository.cs" />
+    <Compile Include="DAL\SolarInformation\SolarConnectionDetails\SolarReadingUsageBulkDao.cs" />
     <Compile Include="DAL\SolarInformation\SolarPaymentBulkDao.cs" />
     <Compile Include="DAL\SolarInformation\SolarPVCapacity\PVCapacityBulkDao.cs" />
     <Compile Include="DAL\SolarInformation\SolarPVCapacity\PVCapacityOrdinaryDao.cs" />
@@ -382,6 +383,7 @@
     <Compile Include="Models\SolarInformation\SolarProgressSummaryModel.cs" />
     <Compile Include="Models\SolarInformation\SolarReadingDetailedModel.cs" />
     <Compile Include="Models\SolarInformation\SolarReadingSummaryModel.cs" />
+    <Compile Include="Models\SolarInformation\SolarReadingUsageBulkModel.cs" />
     <Compile Include="Models\TrialBalance\CompanyTrialBalanceModel.cs" />
     <Compile Include="Models\IncomeExpenditure\IncomeExpenditureModels.cs" />
     <Compile Include="Models\IncomeExpenditure\IncomeExpenditureRegionModel.cs" />
