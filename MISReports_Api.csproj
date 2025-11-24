@@ -281,9 +281,11 @@
     <Compile Include="Controllers\Cash Book\DocumentInquiryController.cs" />
     <Compile Include="Controllers\Inventory\InventoryOnHandController.cs" />
     <Compile Include="Controllers\JobCard\JobCardController.cs" />
+    <Compile Include="Controllers\JobCard\JobCardMaterialsController.cs" />
     <Compile Include="Controllers\LedgerCard\DivisionalLedgerCardController.cs" />
     <Compile Include="Controllers\LedgerCard\LedgerCardController.cs" />
     <Compile Include="Controllers\LedgerCard\LedgerCardTotalController.cs" />
+    <Compile Include="Controllers\PIV\ProvincePIVbankController.cs" />
     <Compile Include="Controllers\WorkInProgController\CostCenterWorkInProgressController.cs" />
     <Compile Include="Controllers\Debtors\AreasController.cs" />
     <Compile Include="Controllers\Debtors\BillCycleController.cs" />
@@ -310,8 +312,10 @@
     <Compile Include="DAL\Cash Book\CashBookReportRepository.cs" />
     <Compile Include="DAL\Cash Book\DocumentInquiryRepository.cs" />
     <Compile Include="DAL\Inventory\InventoryOnHandRepository.cs" />
+    <Compile Include="DAL\JobCard\JobCardMaterialsRepository.cs" />
     <Compile Include="DAL\LedgerCard\DivisionalLedgerCardRepository.cs" />
     <Compile Include="DAL\LedgerCard\LedgerCardTotalRepository.cs" />
+    <Compile Include="DAL\PIV\ProvincePIVbankRepository.cs" />
     <Compile Include="DAL\SolarInformation\SolarConnectionDetails\SolarReadingRetailDetailedDao.cs" />
     <Compile Include="DAL\SolarInformation\SolarConnectionDetails\SolarReadingRetailSummaryDao.cs" />
     <Compile Include="DAL\LedgerCard\LedgerCardRepository.cs" />
@@ -373,11 +377,13 @@
     <Compile Include="Models\Debtors\DebtorsBulkModel.cs" />
     <Compile Include="Models\Debtors\DebtorsModel.cs" />
     <Compile Include="Models\Inventory\InventoryOnHandModel.cs" />
+    <Compile Include="Models\JobCard\JobCardMaterialsModel.cs" />
     <Compile Include="Models\JobCard\JobCardModel.cs" />
     <Compile Include="Models\LedgerCard\DivisionalLedgerCardModel.cs" />
     <Compile Include="Models\LedgerCard\LedgerCardModel.cs" />
     <Compile Include="Models\LedgerCard\LedgerCardTotalModel.cs" />
     <Compile Include="Models\OUMModels.cs" />
+    <Compile Include="Models\PIV\ProvincePIVbankModel.cs" />
     <Compile Include="Models\SolarInformation\AreaBulkModel.cs" />
     <Compile Include="Models\Shared\BillCycleModel.cs" />
     <Compile Include="Models\SolarInformation\BulkConnectionModel.cs" />
