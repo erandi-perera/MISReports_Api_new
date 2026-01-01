@@ -3,6 +3,7 @@ using MISReports_Api.DAL.SolarInformation.SolarPVConnections;
 using MISReports_Api.DAL.SolarInformation.SolarPaymentRetail;
 using MISReports_Api.DAL.SolarInformation.SolarPVCapacity;
 using MISReports_Api.DAL.SolarInformation.SolarConnectionDetails;
+using MISReports_Api.DAO.SolarInformation.SolarCustomerInformation;
 using MISReports_Api.DAL.SolarInformation;
 using MISReports_Api.DAL.Shared;
 using MISReports_Api.Models.SolarInformation;
@@ -43,6 +44,8 @@ namespace MISReports_Api.Controllers
         private readonly SolarReadingRetailDetailedDao _solarReadingDetailedDao = new SolarReadingRetailDetailedDao();
         private readonly SolarReadingRetailSummaryDao _solarReadingSummaryDao = new SolarReadingRetailSummaryDao();
         private readonly SolarReadingUsageBulkDao _solarReadingUsageBulkDao = new SolarReadingUsageBulkDao();
+        private readonly SolarCustomerInforOrdinaryDao _solarCustomerInforOrdinaryDao = new SolarCustomerInforOrdinaryDao();
+        private readonly SolarCustomerInforBulkDao _solarCustomerInforBulkDao = new SolarCustomerInforBulkDao();
 
         [HttpGet]
         [Route("areas")]
@@ -2071,6 +2074,105 @@ namespace MISReports_Api.Controllers
                 {
                     data = (object)null,
                     errorMessage = "Cannot get solar reading usage bulk report data.",
+                    errorDetails = ex.Message
+                });
+            }
+        }
+        [HttpGet]
+        [Route("solarCustomerInformation/{accountNumber}")]
+        public IHttpActionResult GetSolarCustomerInformation(string accountNumber)
+        {
+            try
+            {
+                // Validate account number
+                if (string.IsNullOrWhiteSpace(accountNumber))
+                {
+                    return Ok(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Account number is required."
+                    });
+                }
+
+                System.Diagnostics.Trace.WriteLine($"=== Fetching customer information for account: {accountNumber} ===");
+
+                // Step 1: Check if account exists in Ordinary database
+                bool isOrdinary = _solarCustomerInforOrdinaryDao.AccountExists(accountNumber);
+
+                if (isOrdinary)
+                {
+                    System.Diagnostics.Trace.WriteLine($"Account {accountNumber} found in Ordinary database");
+
+                    // Fetch data from Ordinary database
+                    var response = _solarCustomerInforOrdinaryDao.GetCustomerInformation(accountNumber);
+
+                    if (response.CustomerInfo == null)
+                    {
+                        return Ok(new
+                        {
+                            data = (object)null,
+                            errorMessage = response.ErrorMessage ?? "Customer information not found in Ordinary database."
+                        });
+                    }
+
+                    return Ok(new
+                    {
+                        data = response,
+                        errorMessage = (string)null
+                    });
+                }
+                else
+                {
+                    // Step 2: Check if account exists in Bulk database
+                    System.Diagnostics.Trace.WriteLine($"Account {accountNumber} not found in Ordinary database, checking Bulk...");
+
+                    bool isBulk = _solarCustomerInforBulkDao.AccountExists(accountNumber);
+
+                    if (isBulk)
+                    {
+                        System.Diagnostics.Trace.WriteLine($"Account {accountNumber} found in Bulk database");
+
+                        // Fetch data from Bulk database
+                        var response = _solarCustomerInforBulkDao.GetCustomerInformation(accountNumber);
+
+                        if (response.CustomerInfo == null)
+                        {
+                            return Ok(new
+                            {
+                                data = (object)null,
+                                errorMessage = response.ErrorMessage ?? "Customer information not found in Bulk database."
+                            });
+                        }
+
+                        return Ok(new
+                        {
+                            data = response,
+                            errorMessage = (string)null
+                        });
+                    }
+                    else
+                    {
+                        // Account not found in either database
+                        System.Diagnostics.Trace.WriteLine($"Account {accountNumber} not found in any database");
+
+                        return Ok(new
+                        {
+                            data = (object)null,
+                            errorMessage = "Account number not found in Ordinary or Bulk databases.",
+                            customerType = "Unknown"
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"ERROR in GetCustomerInformation: {ex.Message}");
+                System.Diagnostics.Trace.WriteLine($"Stack Trace: {ex.StackTrace}");
+
+                return Ok(new
+                {
+                    data = (object)null,
+                    errorMessage = "Error retrieving customer information.",
                     errorDetails = ex.Message
                 });
             }

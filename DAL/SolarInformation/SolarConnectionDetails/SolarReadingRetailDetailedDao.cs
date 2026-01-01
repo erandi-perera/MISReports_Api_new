@@ -69,6 +69,7 @@ namespace MISReports_Api.DAL.SolarInformation.SolarConnectionDetails
                             UnitsIn = netRecord.UnitsIn,
                             UnitsOut = netRecord.UnitsOut,
                             UnitCost = netRecord.Rate,
+                            NetUnits = netRecord.UnitSale,
                             PayableAmount = netRecord.KwhSales,
                             BankCode = netRecord.BankCode,
                             BranchCode = netRecord.BranchCode,
@@ -79,7 +80,7 @@ namespace MISReports_Api.DAL.SolarInformation.SolarConnectionDetails
                         };
 
                         // Calculate Net Units (UnitsIn - UnitsOut)
-                        model.NetUnits = model.UnitsIn - model.UnitsOut;
+                        //model.NetUnits = model.UnitsIn - model.UnitsOut;
 
                         // Add area information
                         if (areaInfo.TryGetValue(netRecord.AreaCode, out var area))
@@ -253,12 +254,10 @@ namespace MISReports_Api.DAL.SolarInformation.SolarConnectionDetails
                         {
                             data.AgreementDate = "";
                         }
-
                         results.Add(data);
                     }
                 }
             }
-
             return results;
         }
 
