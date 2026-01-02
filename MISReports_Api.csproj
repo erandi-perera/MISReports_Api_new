@@ -134,7 +134,7 @@
       <HintPath>packages\NLog.Web.AspNetCore.6.0.3\lib\net462\NLog.Web.AspNetCore.dll</HintPath>
     </Reference>
     <Reference Include="Oracle.ManagedDataAccess, Version=4.122.23.1, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL">
-      <HintPath>packages\Oracle.ManagedDataAccess.23.9.1\lib\net472\Oracle.ManagedDataAccess.dll</HintPath>
+      <HintPath>packages\Oracle.ManagedDataAccess.23.26.0\lib\net472\Oracle.ManagedDataAccess.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
@@ -285,6 +285,8 @@
     <Compile Include="Controllers\LedgerCard\DivisionalLedgerCardController.cs" />
     <Compile Include="Controllers\LedgerCard\LedgerCardController.cs" />
     <Compile Include="Controllers\LedgerCard\LedgerCardTotalController.cs" />
+    <Compile Include="Controllers\PhysicalVerification\PHVEntryFormController.cs" />
+    <Compile Include="Controllers\PhysicalVerification\PHVValidationController.cs" />
     <Compile Include="Controllers\PIV\OtherCCtoProvinceController.cs" />
     <Compile Include="Controllers\PIV\ProvincePIVAllController.cs" />
     <Compile Include="Controllers\PIV\ProvincePIVbankController.cs" />
@@ -319,6 +321,8 @@
     <Compile Include="DAL\JobCard\JobCardMaterialsRepository.cs" />
     <Compile Include="DAL\LedgerCard\DivisionalLedgerCardRepository.cs" />
     <Compile Include="DAL\LedgerCard\LedgerCardTotalRepository.cs" />
+    <Compile Include="DAL\PhysicalVerification\PHVEntryFormRepository.cs" />
+    <Compile Include="DAL\PhysicalVerification\PHVValidationRepository.cs" />
     <Compile Include="DAL\PIV\OtherCCtoProvinceRepository.cs" />
     <Compile Include="DAL\PIV\ProvincePIVAllRepository.cs" />
     <Compile Include="DAL\PIV\ProvincePIVbankRepository.cs" />
@@ -391,6 +395,8 @@
     <Compile Include="Models\LedgerCard\LedgerCardModel.cs" />
     <Compile Include="Models\LedgerCard\LedgerCardTotalModel.cs" />
     <Compile Include="Models\OUMModels.cs" />
+    <Compile Include="Models\PhysicalVerification\PHVEntryFormModel.cs" />
+    <Compile Include="Models\PhysicalVerification\PHVValidationModel.cs" />
     <Compile Include="Models\PIV\OtherCCtoProvinceModel.cs" />
     <Compile Include="Models\PIV\ProvincePIVAllModel.cs" />
     <Compile Include="Models\PIV\ProvincePIVbankModel.cs" />
