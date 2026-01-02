@@ -1,4 +1,6 @@
-﻿// File: ProvincePIVbankModel.cs
+﻿//01.Branch/Province wise PIV Collections Paid to Bank
+
+// File: ProvincePIVbankModel.cs
 using System;
 
 namespace MISReports_Api.Models

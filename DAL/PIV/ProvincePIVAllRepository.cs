@@ -35,7 +35,7 @@ namespace MISReports_Api.Repositories
                     c.bank_check_no,
                     (SELECT dept_nm
                        FROM gldeptm
-                      WHERE dept_id = c.dept_id) AS CCT_NAME,
+                      WHERE dept_id = c.paid_dept_id) AS CCT_NAME,
                     (SELECT comp_nm
                        FROM glcompm
                       WHERE TRIM(comp_id) = :compId) AS CCT_NAME1
@@ -43,7 +43,7 @@ namespace MISReports_Api.Repositories
                 INNER JOIN piv_detail c
                     ON c.PIV_NO = a.PIV_NO
                    AND a.dept_id = c.dept_id
-                WHERE TRIM(c.status) IN ('Q', 'P', 'F')
+                WHERE TRIM(c.status) IN ('Q', 'P', 'F', 'FR', 'FA')
                   AND c.paid_dept_id IN (
                         SELECT x.dept_id
                         FROM gldeptm x

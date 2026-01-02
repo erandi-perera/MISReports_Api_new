@@ -47,7 +47,7 @@ FROM piv_amount a,
      piv_detail c
 WHERE c.PIV_NO = a.PIV_NO
   AND a.dept_id = c.dept_id
-  AND TRIM(c.status) IN ('Q', 'P', 'F')
+  AND TRIM(c.status) IN ('Q', 'P', 'F', 'FR', 'FA')
 
   AND c.paid_dept_id NOT IN (
         SELECT X.dept_id

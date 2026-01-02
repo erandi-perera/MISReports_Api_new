@@ -1,5 +1,4 @@
-﻿//01.Branch/Province wise PIV Collections Paid to Bank
-
+﻿// 06. Branch wise PIV Tabulation (Both Bank and POS) Report
 using MISReports_Api.Repositories;
 using System;
 using System.Globalization;
@@ -7,14 +6,12 @@ using System.Web.Http;
 
 namespace MISReports_Api.Controllers
 {
-    [RoutePrefix("api/provincepivbank")]
-    public class ProvincePIVbankController : ApiController
+    [RoutePrefix("api/branchwisepivboth")]
+    public class BranchWisePivBothController : ApiController
     {
-        private readonly ProvincePIVbankRepository _repository = new ProvincePIVbankRepository();
+        private readonly BranchWisePivBothRepository _repo = new BranchWisePivBothRepository();
 
-        /// <summary>
-        /// GET: api/provincepivbank/get?compId=001&fromDate=20250101&toDate=20251231
-        /// </summary>
+        // GET: api/branchwisepivboth/get?compId=001&fromDate=20250401&toDate=20250430
         [HttpGet]
         [Route("get")]
         public IHttpActionResult Get(string compId, string fromDate, string toDate)
@@ -23,23 +20,23 @@ namespace MISReports_Api.Controllers
                 string.IsNullOrWhiteSpace(fromDate) ||
                 string.IsNullOrWhiteSpace(toDate))
             {
-                return BadRequest("Parameters compId, fromDate, and toDate are required.");
+                return BadRequest("compId, fromDate and toDate are required.");
             }
 
             if (!DateTime.TryParseExact(fromDate, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fromDt) ||
                 !DateTime.TryParseExact(toDate, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime toDt))
             {
-                return BadRequest("Date format must be yyyyMMdd (e.g., 20250101)");
+                return BadRequest("Invalid date format. Use yyyyMMdd (e.g. 20250401)");
             }
 
             try
             {
-                var data = _repository.GetProvincePIVbankReport(compId, fromDt, toDt);
+                var data = _repo.GetBranchWisePivBothReport(compId.Trim(), fromDt, toDt);
                 return Ok(data);
             }
             catch (Exception ex)
             {
-                return InternalServerError(new Exception("Error fetching Province PIV Bank report.", ex));
+                return InternalServerError(new Exception("Error while fetching Branch wise PIV Both report: " + ex.Message));
             }
         }
     }
