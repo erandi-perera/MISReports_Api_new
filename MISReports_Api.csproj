@@ -286,12 +286,9 @@
     <Compile Include="Controllers\LedgerCard\DivisionalLedgerCardController.cs" />
     <Compile Include="Controllers\LedgerCard\LedgerCardController.cs" />
     <Compile Include="Controllers\LedgerCard\LedgerCardTotalController.cs" />
-<<<<<<< HEAD
     <Compile Include="Controllers\PIV\BranchWisePivBothController.cs" />
-=======
     <Compile Include="Controllers\PhysicalVerification\PHVEntryFormController.cs" />
     <Compile Include="Controllers\PhysicalVerification\PHVValidationController.cs" />
->>>>>>> 728fd6aed334f3907b670bdb5f5d0fee0c4384c3
     <Compile Include="Controllers\PIV\OtherCCtoProvinceController.cs" />
     <Compile Include="Controllers\PIV\PIVbyBanksController.cs" />
     <Compile Include="Controllers\PIV\PivByPeopleBankController.cs" />
@@ -333,12 +330,9 @@
     <Compile Include="DAL\JobCard\JobCardMaterialsRepository.cs" />
     <Compile Include="DAL\LedgerCard\DivisionalLedgerCardRepository.cs" />
     <Compile Include="DAL\LedgerCard\LedgerCardTotalRepository.cs" />
-<<<<<<< HEAD
     <Compile Include="DAL\PIV\BranchWisePivBothRepository.cs" />
-=======
     <Compile Include="DAL\PhysicalVerification\PHVEntryFormRepository.cs" />
     <Compile Include="DAL\PhysicalVerification\PHVValidationRepository.cs" />
->>>>>>> 728fd6aed334f3907b670bdb5f5d0fee0c4384c3
     <Compile Include="DAL\PIV\OtherCCtoProvinceRepository.cs" />
     <Compile Include="DAL\PIV\PIVbyBanksRepository.cs" />
     <Compile Include="DAL\PIV\PivByPeopleBankRepository.cs" />
@@ -420,12 +414,9 @@
     <Compile Include="Models\LedgerCard\LedgerCardModel.cs" />
     <Compile Include="Models\LedgerCard\LedgerCardTotalModel.cs" />
     <Compile Include="Models\OUMModels.cs" />
-<<<<<<< HEAD
     <Compile Include="Models\PIV\BranchWisePivBothModel.cs" />
-=======
     <Compile Include="Models\PhysicalVerification\PHVEntryFormModel.cs" />
     <Compile Include="Models\PhysicalVerification\PHVValidationModel.cs" />
->>>>>>> 728fd6aed334f3907b670bdb5f5d0fee0c4384c3
     <Compile Include="Models\PIV\OtherCCtoProvinceModel.cs" />
     <Compile Include="Models\PIV\PIVbyBanksModel.cs" />
     <Compile Include="Models\PIV\PivByPeopleBankModel.cs" />
