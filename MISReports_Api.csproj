@@ -134,7 +134,7 @@
       <HintPath>packages\NLog.Web.AspNetCore.6.0.3\lib\net462\NLog.Web.AspNetCore.dll</HintPath>
     </Reference>
     <Reference Include="Oracle.ManagedDataAccess, Version=4.122.23.1, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL">
-      <HintPath>packages\Oracle.ManagedDataAccess.23.9.1\lib\net472\Oracle.ManagedDataAccess.dll</HintPath>
+      <HintPath>packages\Oracle.ManagedDataAccess.23.26.0\lib\net472\Oracle.ManagedDataAccess.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
@@ -286,7 +286,12 @@
     <Compile Include="Controllers\LedgerCard\DivisionalLedgerCardController.cs" />
     <Compile Include="Controllers\LedgerCard\LedgerCardController.cs" />
     <Compile Include="Controllers\LedgerCard\LedgerCardTotalController.cs" />
+<<<<<<< HEAD
     <Compile Include="Controllers\PIV\BranchWisePivBothController.cs" />
+=======
+    <Compile Include="Controllers\PhysicalVerification\PHVEntryFormController.cs" />
+    <Compile Include="Controllers\PhysicalVerification\PHVValidationController.cs" />
+>>>>>>> 728fd6aed334f3907b670bdb5f5d0fee0c4384c3
     <Compile Include="Controllers\PIV\OtherCCtoProvinceController.cs" />
     <Compile Include="Controllers\PIV\PIVbyBanksController.cs" />
     <Compile Include="Controllers\PIV\PivByPeopleBankController.cs" />
@@ -328,7 +333,12 @@
     <Compile Include="DAL\JobCard\JobCardMaterialsRepository.cs" />
     <Compile Include="DAL\LedgerCard\DivisionalLedgerCardRepository.cs" />
     <Compile Include="DAL\LedgerCard\LedgerCardTotalRepository.cs" />
+<<<<<<< HEAD
     <Compile Include="DAL\PIV\BranchWisePivBothRepository.cs" />
+=======
+    <Compile Include="DAL\PhysicalVerification\PHVEntryFormRepository.cs" />
+    <Compile Include="DAL\PhysicalVerification\PHVValidationRepository.cs" />
+>>>>>>> 728fd6aed334f3907b670bdb5f5d0fee0c4384c3
     <Compile Include="DAL\PIV\OtherCCtoProvinceRepository.cs" />
     <Compile Include="DAL\PIV\PIVbyBanksRepository.cs" />
     <Compile Include="DAL\PIV\PivByPeopleBankRepository.cs" />
@@ -344,6 +354,8 @@
     <Compile Include="DAL\SolarInformation\SolarConnectionDetails\SolarReadingRetailSummaryDao.cs" />
     <Compile Include="DAL\LedgerCard\LedgerCardRepository.cs" />
     <Compile Include="DAL\SolarInformation\SolarConnectionDetails\SolarReadingUsageBulkDao.cs" />
+    <Compile Include="DAL\SolarInformation\SolarCustomerInformation\SolarCustomerInforBulkDao.cs" />
+    <Compile Include="DAL\SolarInformation\SolarCustomerInformation\SolarCustomerInforOrdinaryDao.cs" />
     <Compile Include="DAL\SolarInformation\SolarPaymentBulkDao.cs" />
     <Compile Include="DAL\SolarInformation\SolarPVCapacity\PVCapacityBulkDao.cs" />
     <Compile Include="DAL\SolarInformation\SolarPVCapacity\PVCapacityOrdinaryDao.cs" />
@@ -408,7 +420,12 @@
     <Compile Include="Models\LedgerCard\LedgerCardModel.cs" />
     <Compile Include="Models\LedgerCard\LedgerCardTotalModel.cs" />
     <Compile Include="Models\OUMModels.cs" />
+<<<<<<< HEAD
     <Compile Include="Models\PIV\BranchWisePivBothModel.cs" />
+=======
+    <Compile Include="Models\PhysicalVerification\PHVEntryFormModel.cs" />
+    <Compile Include="Models\PhysicalVerification\PHVValidationModel.cs" />
+>>>>>>> 728fd6aed334f3907b670bdb5f5d0fee0c4384c3
     <Compile Include="Models\PIV\OtherCCtoProvinceModel.cs" />
     <Compile Include="Models\PIV\PIVbyBanksModel.cs" />
     <Compile Include="Models\PIV\PivByPeopleBankModel.cs" />
@@ -429,6 +446,7 @@
     <Compile Include="Models\SolarInformation\PVCapacityModel.cs" />
     <Compile Include="Models\SolarInformation\RetailDetailedModel.cs" />
     <Compile Include="Models\SolarInformation\RetailSummaryModel.cs" />
+    <Compile Include="Models\SolarInformation\SolarCustomerInforModel.cs" />
     <Compile Include="Models\SolarInformation\SolarPaymentBulkModel.cs" />
     <Compile Include="Models\SolarInformation\SolarProgressDetailedModel.cs" />
     <Compile Include="Models\SolarInformation\SolarProgressSummaryModel.cs" />
