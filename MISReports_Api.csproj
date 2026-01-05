@@ -276,9 +276,33 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\SampleDirection.cs" />
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
+    <Compile Include="Controllers\Cash Book\CashBookCCReportController.cs" />
+    <Compile Include="Controllers\Cash Book\CashBookReportController.cs" />
+    <Compile Include="Controllers\Cash Book\DocumentInquiryController.cs" />
+    <Compile Include="Controllers\IncomeExpenditure\IncomeExpenditureRegionDetailedController.cs" />
     <Compile Include="Controllers\Inventory\InventoryOnHandController.cs" />
     <Compile Include="Controllers\JobCard\JobCardController.cs" />
+    <Compile Include="Controllers\JobCard\JobCardMaterialsController.cs" />
+    <Compile Include="Controllers\LedgerCard\DivisionalLedgerCardController.cs" />
     <Compile Include="Controllers\LedgerCard\LedgerCardController.cs" />
+    <Compile Include="Controllers\LedgerCard\LedgerCardTotalController.cs" />
+
+    <Compile Include="Controllers\PIV\BranchWisePivBothController.cs" />
+
+    <Compile Include="Controllers\PhysicalVerification\PHVEntryFormController.cs" />
+    <Compile Include="Controllers\PhysicalVerification\PHVValidationController.cs" />
+
+    <Compile Include="Controllers\PIV\OtherCCtoProvinceController.cs" />
+    <Compile Include="Controllers\PIV\PIVbyBanksController.cs" />
+    <Compile Include="Controllers\PIV\PivByPeopleBankController.cs" />
+    <Compile Include="Controllers\PIV\PivBySLTController.cs" />
+    <Compile Include="Controllers\PIV\PIVDetailsController.cs" />
+    <Compile Include="Controllers\PIV\ProvincePIVAllController.cs" />
+    <Compile Include="Controllers\PIV\ProvincePIVbankController.cs" />
+    <Compile Include="Controllers\PIV\ProvincePivOtherCCController.cs" />
+    <Compile Include="Controllers\PIV\ProvincePIVprovincialPOSController.cs" />
+    <Compile Include="Controllers\SolarDetails\SolarBillingController.cs" />
+    <Compile Include="Controllers\SolarDetails\SolarPendingJobsController.cs" />
     <Compile Include="Controllers\WorkInProgController\CostCenterWorkInProgressController.cs" />
     <Compile Include="Controllers\Debtors\AreasController.cs" />
     <Compile Include="Controllers\Debtors\BillCycleController.cs" />
@@ -301,7 +325,28 @@
     <Compile Include="Controllers\WorkInProgController\ProjectAgeAnalysisController.cs" />
     <Compile Include="Controllers\WorkInProgController\ProjectCommitmentSummaryController.cs" />
     <Compile Include="Controllers\WorkInProgController\WorkInProgressCompletedCostCenterwiseController.cs" />
+    <Compile Include="DAL\Cash Book\CashBookCCReportRepository.cs" />
+    <Compile Include="DAL\Cash Book\CashBookReportRepository.cs" />
+    <Compile Include="DAL\Cash Book\DocumentInquiryRepository.cs" />
+    <Compile Include="DAL\IncomeExpenditure\IncomeExpenditureRegionDetailedRepository.cs" />
     <Compile Include="DAL\Inventory\InventoryOnHandRepository.cs" />
+    <Compile Include="DAL\JobCard\JobCardMaterialsRepository.cs" />
+    <Compile Include="DAL\LedgerCard\DivisionalLedgerCardRepository.cs" />
+    <Compile Include="DAL\LedgerCard\LedgerCardTotalRepository.cs" />
+    <Compile Include="DAL\PIV\BranchWisePivBothRepository.cs" />
+    <Compile Include="DAL\PhysicalVerification\PHVEntryFormRepository.cs" />
+    <Compile Include="DAL\PhysicalVerification\PHVValidationRepository.cs" />
+    <Compile Include="DAL\PIV\OtherCCtoProvinceRepository.cs" />
+    <Compile Include="DAL\PIV\PIVbyBanksRepository.cs" />
+    <Compile Include="DAL\PIV\PivByPeopleBankRepository.cs" />
+    <Compile Include="DAL\PIV\PivBySLTRepository.cs" />
+    <Compile Include="DAL\PIV\PIVDetailsRepository.cs" />
+    <Compile Include="DAL\PIV\ProvincePIVAllRepository.cs" />
+    <Compile Include="DAL\PIV\ProvincePIVbankRepository.cs" />
+    <Compile Include="DAL\PIV\ProvincePivOtherCCRepository.cs" />
+    <Compile Include="DAL\PIV\ProvincePIVprovincialRepository.cs" />
+    <Compile Include="DAL\SolarDetails\SolarBillingRepository.cs" />
+    <Compile Include="DAL\SolarDetails\SolarPendingJobsRepository.cs" />
     <Compile Include="DAL\SolarInformation\SolarConnectionDetails\SolarReadingRetailDetailedDao.cs" />
     <Compile Include="DAL\SolarInformation\SolarConnectionDetails\SolarReadingRetailSummaryDao.cs" />
     <Compile Include="DAL\LedgerCard\LedgerCardRepository.cs" />
@@ -357,15 +402,39 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\BillCycleHelper.cs" />
+    <Compile Include="Models\Cash Book\CashBookCCReportModel.cs" />
+    <Compile Include="Models\Cash Book\CashBookReportModel.cs" />
+    <Compile Include="Models\Cash Book\DocumentInquiryModel.cs" />
     <Compile Include="Models\Debtors\AreaModel.cs" />
     <Compile Include="Models\Debtors\BillCycleModel.cs" />
     <Compile Include="Models\Debtors\DebtorDetailModel.cs" />
     <Compile Include="Models\Debtors\DebtorsBulkModel.cs" />
     <Compile Include="Models\Debtors\DebtorsModel.cs" />
+    <Compile Include="Models\IncomeExpenditure\IncomeExpenditureRegionDetailedModel.cs" />
     <Compile Include="Models\Inventory\InventoryOnHandModel.cs" />
+    <Compile Include="Models\JobCard\JobCardMaterialsModel.cs" />
     <Compile Include="Models\JobCard\JobCardModel.cs" />
+    <Compile Include="Models\LedgerCard\DivisionalLedgerCardModel.cs" />
     <Compile Include="Models\LedgerCard\LedgerCardModel.cs" />
+    <Compile Include="Models\LedgerCard\LedgerCardTotalModel.cs" />
     <Compile Include="Models\OUMModels.cs" />
+
+    <Compile Include="Models\PIV\BranchWisePivBothModel.cs" />
+
+    <Compile Include="Models\PhysicalVerification\PHVEntryFormModel.cs" />
+    <Compile Include="Models\PhysicalVerification\PHVValidationModel.cs" />
+
+    <Compile Include="Models\PIV\OtherCCtoProvinceModel.cs" />
+    <Compile Include="Models\PIV\PIVbyBanksModel.cs" />
+    <Compile Include="Models\PIV\PivByPeopleBankModel.cs" />
+    <Compile Include="Models\PIV\PivBySLTModel.cs" />
+    <Compile Include="Models\PIV\PIVDetailsReportModel.cs" />
+    <Compile Include="Models\PIV\ProvincePIVAllModel.cs" />
+    <Compile Include="Models\PIV\ProvincePIVbankModel.cs" />
+    <Compile Include="Models\PIV\ProvincePivOtherCC.model.cs" />
+    <Compile Include="Models\PIV\ProvincePIVprovincialPOSModel.cs" />
+    <Compile Include="Models\SolarDetails\SolarBillingModel.cs" />
+    <Compile Include="Models\SolarDetails\SolarPendingJobsModel.cs" />
     <Compile Include="Models\SolarInformation\AreaBulkModel.cs" />
     <Compile Include="Models\Shared\BillCycleModel.cs" />
     <Compile Include="Models\SolarInformation\BulkConnectionModel.cs" />

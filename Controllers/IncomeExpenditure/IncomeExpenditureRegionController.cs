@@ -12,14 +12,22 @@ namespace MISReports_Api.Controllers
     {
         private readonly IncomeExpenditureRegionRepository _repository = new IncomeExpenditureRegionRepository();
 
-        // One endpoint: companyId + year + month
         [HttpGet]
-        [Route("{companyId}/{repyear}/{repmonth}")]
-        public IHttpActionResult GetIncomeExpenditureRegion(string companyId, string repyear, string repmonth)
+        [Route("{companyId}/{repyear:int}/{repmonth:int}")]
+        public IHttpActionResult GetIncomeExpenditureRegion(string companyId, int repyear, int repmonth)
         {
             try
             {
-                var result = _repository.GetIncomeExpenditureRegion(companyId.Trim(), repyear.Trim(), repmonth.Trim());
+                if (string.IsNullOrWhiteSpace(companyId))
+                    throw new ArgumentException("Company ID is required.");
+
+                if (repyear < 1900 || repyear > 2100)
+                    throw new ArgumentException("Invalid year.");
+
+                if (repmonth < 1 || repmonth > 12)
+                    throw new ArgumentException("Invalid month.");
+
+                var result = _repository.GetIncomeExpenditureRegion(companyId.Trim(), repyear, repmonth);
 
                 var response = new
                 {
@@ -29,16 +37,25 @@ namespace MISReports_Api.Controllers
 
                 return Ok(JObject.Parse(JsonConvert.SerializeObject(response)));
             }
-            catch (Exception ex)
+            catch (ArgumentException aex)
             {
-                var errorResponse = new
+                var error = new
                 {
                     data = (object)null,
-                    errorMessage = "Cannot get Income vs Expenditure Region data.",
+                    errorMessage = aex.Message,
+                    errorDetails = (string)null
+                };
+                return BadRequest(JsonConvert.SerializeObject(error));
+            }
+            catch (Exception ex)
+            {
+                var error = new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot retrieve Income vs Expenditure Region data.",
                     errorDetails = ex.Message
                 };
-
-                return Ok(JObject.Parse(JsonConvert.SerializeObject(errorResponse)));
+                return Ok(JObject.Parse(JsonConvert.SerializeObject(error)));
             }
         }
     }
