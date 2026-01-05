@@ -286,12 +286,9 @@
     <Compile Include="Controllers\LedgerCard\DivisionalLedgerCardController.cs" />
     <Compile Include="Controllers\LedgerCard\LedgerCardController.cs" />
     <Compile Include="Controllers\LedgerCard\LedgerCardTotalController.cs" />
-
     <Compile Include="Controllers\PIV\BranchWisePivBothController.cs" />
-
     <Compile Include="Controllers\PhysicalVerification\PHVEntryFormController.cs" />
     <Compile Include="Controllers\PhysicalVerification\PHVValidationController.cs" />
-
     <Compile Include="Controllers\PIV\OtherCCtoProvinceController.cs" />
     <Compile Include="Controllers\PIV\PIVbyBanksController.cs" />
     <Compile Include="Controllers\PIV\PivByPeopleBankController.cs" />
@@ -301,6 +298,7 @@
     <Compile Include="Controllers\PIV\ProvincePIVbankController.cs" />
     <Compile Include="Controllers\PIV\ProvincePivOtherCCController.cs" />
     <Compile Include="Controllers\PIV\ProvincePIVprovincialPOSController.cs" />
+    <Compile Include="Controllers\PIV\ProvinceWisePIVStampDutyController.cs" />
     <Compile Include="Controllers\SolarDetails\SolarBillingController.cs" />
     <Compile Include="Controllers\SolarDetails\SolarPendingJobsController.cs" />
     <Compile Include="Controllers\WorkInProgController\CostCenterWorkInProgressController.cs" />
@@ -345,6 +343,7 @@
     <Compile Include="DAL\PIV\ProvincePIVbankRepository.cs" />
     <Compile Include="DAL\PIV\ProvincePivOtherCCRepository.cs" />
     <Compile Include="DAL\PIV\ProvincePIVprovincialRepository.cs" />
+    <Compile Include="DAL\PIV\ProvinceWisePIVStampDutyRepository.cs" />
     <Compile Include="DAL\SolarDetails\SolarBillingRepository.cs" />
     <Compile Include="DAL\SolarDetails\SolarPendingJobsRepository.cs" />
     <Compile Include="DAL\SolarInformation\SolarConnectionDetails\SolarReadingRetailDetailedDao.cs" />
@@ -417,12 +416,9 @@
     <Compile Include="Models\LedgerCard\LedgerCardModel.cs" />
     <Compile Include="Models\LedgerCard\LedgerCardTotalModel.cs" />
     <Compile Include="Models\OUMModels.cs" />
-
     <Compile Include="Models\PIV\BranchWisePivBothModel.cs" />
-
     <Compile Include="Models\PhysicalVerification\PHVEntryFormModel.cs" />
     <Compile Include="Models\PhysicalVerification\PHVValidationModel.cs" />
-
     <Compile Include="Models\PIV\OtherCCtoProvinceModel.cs" />
     <Compile Include="Models\PIV\PIVbyBanksModel.cs" />
     <Compile Include="Models\PIV\PivByPeopleBankModel.cs" />
@@ -432,6 +428,7 @@
     <Compile Include="Models\PIV\ProvincePIVbankModel.cs" />
     <Compile Include="Models\PIV\ProvincePivOtherCC.model.cs" />
     <Compile Include="Models\PIV\ProvincePIVprovincialPOSModel.cs" />
+    <Compile Include="Models\PIV\ProvinceWisePIVStampDutyModel.cs" />
     <Compile Include="Models\SolarDetails\SolarBillingModel.cs" />
     <Compile Include="Models\SolarDetails\SolarPendingJobsModel.cs" />
     <Compile Include="Models\SolarInformation\AreaBulkModel.cs" />
