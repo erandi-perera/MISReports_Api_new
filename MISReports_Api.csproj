@@ -286,12 +286,9 @@
     <Compile Include="Controllers\LedgerCard\DivisionalLedgerCardController.cs" />
     <Compile Include="Controllers\LedgerCard\LedgerCardController.cs" />
     <Compile Include="Controllers\LedgerCard\LedgerCardTotalController.cs" />
-
     <Compile Include="Controllers\PIV\BranchWisePivBothController.cs" />
-
     <Compile Include="Controllers\PhysicalVerification\PHVEntryFormController.cs" />
     <Compile Include="Controllers\PhysicalVerification\PHVValidationController.cs" />
-
     <Compile Include="Controllers\PIV\OtherCCtoProvinceController.cs" />
     <Compile Include="Controllers\PIV\PIVbyBanksController.cs" />
     <Compile Include="Controllers\PIV\PivByPeopleBankController.cs" />
@@ -301,6 +298,7 @@
     <Compile Include="Controllers\PIV\ProvincePIVbankController.cs" />
     <Compile Include="Controllers\PIV\ProvincePivOtherCCController.cs" />
     <Compile Include="Controllers\PIV\ProvincePIVprovincialPOSController.cs" />
+    <Compile Include="Controllers\SharedController .cs" />
     <Compile Include="Controllers\SolarDetails\SolarBillingController.cs" />
     <Compile Include="Controllers\SolarDetails\SolarPendingJobsController.cs" />
     <Compile Include="Controllers\WorkInProgController\CostCenterWorkInProgressController.cs" />
@@ -418,12 +416,9 @@
     <Compile Include="Models\LedgerCard\LedgerCardModel.cs" />
     <Compile Include="Models\LedgerCard\LedgerCardTotalModel.cs" />
     <Compile Include="Models\OUMModels.cs" />
-
     <Compile Include="Models\PIV\BranchWisePivBothModel.cs" />
-
     <Compile Include="Models\PhysicalVerification\PHVEntryFormModel.cs" />
     <Compile Include="Models\PhysicalVerification\PHVValidationModel.cs" />
-
     <Compile Include="Models\PIV\OtherCCtoProvinceModel.cs" />
     <Compile Include="Models\PIV\PIVbyBanksModel.cs" />
     <Compile Include="Models\PIV\PivByPeopleBankModel.cs" />
