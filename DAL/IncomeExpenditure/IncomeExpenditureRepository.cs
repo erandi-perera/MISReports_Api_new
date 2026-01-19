@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
+
 namespace MISReports_Api.DAL
 {
     public class IncomeExpenditureRepository
@@ -49,7 +50,7 @@ namespace MISReports_Api.DAL
                        Union ALL
                    SELECT    C.title_cd,     C.ac_cd  ,
                    NVL(ROUND(SUM(L.cl_bal),2),0.00) AS clbal,
-                  0.00 as bgt_amt ,  
+                  0.00 as bgt_amt ,
                     -1 * NVL(ROUND(SUM(L.cl_bal),2),0.00) AS varience,
                                    K.ac_Nm AS catName,
                     TL.title_nm AS catCode,
@@ -62,7 +63,7 @@ namespace MISReports_Api.DAL
                     AND C.ac_cd = K.ac_cd
                       AND L.dept_id =  :costctr
                        AND L.yr_ind = :repyear
-                       AND L.mth_ind =  :repmonth 
+                       AND L.mth_ind =  :repmonth
                        and LM.gl_cd not in ( select gl_cd   from  glbgthm where dept_id=:costctr and yr_ind=:repyear)
                              AND( C.title_cd like ( 'XP%') or C.title_cd like ( 'IN%' ))
 	                  Group by 8,C.title_cd ,C.ac_cd,K.ac_Nm, TL.title_nm
@@ -116,9 +117,9 @@ namespace MISReports_Api.DAL
                 conn.Open();
 
                 string sql = @"
-                    SELECT g.dept_id, g.dept_nm   
+                    SELECT g.dept_id, g.dept_nm
                   FROM rep_roles_cct cct, gldeptm g, rep_role_new r
-                  WHERE r.roleid=cct.roleid AND 
+                  WHERE Trim(r.roleid)=Trim(cct.roleid) AND
                  cct.lvl_no=0 and cct.costcentre =g.dept_id
                   and r.epf_no=:epfno order by g.dept_id";
 
@@ -142,6 +143,7 @@ namespace MISReports_Api.DAL
             }
             return deptList;
         }
+
         // get company byUser
         public List<UserCompanyInfo> GetCompaniesByUserlevel(string epfno, string lvl_no)
         {
@@ -152,12 +154,12 @@ namespace MISReports_Api.DAL
                 conn.Open();
 
                 string sql = @"
-                      SELECT g.comp_id, g.comp_nm   FROM 
+                      SELECT g.comp_id, g.comp_nm   FROM
                    rep_roles_cct cct, glcompm g, rep_role_new r
                   WHERE g.status=2 and r.roleid=cct.roleid
                    and cct.costcentre =g.comp_id
-                    and r.epf_no= :epfno 
-                     and cct.lvl_no= :lvl_no 
+                    and r.epf_no= :epfno
+                     and cct.lvl_no= :lvl_no
                      order by g.comp_id";
 
                 using (var cmd = new OracleCommand(sql, conn))
@@ -182,8 +184,5 @@ namespace MISReports_Api.DAL
 
             return ucompanies;
         }
-
-
     }
 }
-
