@@ -298,8 +298,8 @@
     <Compile Include="Controllers\PIV\ProvincePIVbankController.cs" />
     <Compile Include="Controllers\PIV\ProvincePivOtherCCController.cs" />
     <Compile Include="Controllers\PIV\ProvincePIVprovincialPOSController.cs" />
-    <Compile Include="Controllers\SharedController.cs" />
     <Compile Include="Controllers\PIV\ProvinceWisePIVStampDutyController.cs" />
+    <Compile Include="Controllers\SharedController.cs" />
     <Compile Include="Controllers\SolarDetails\SolarBillingController.cs" />
     <Compile Include="Controllers\SolarDetails\SolarPendingJobsController.cs" />
     <Compile Include="Controllers\WorkInProgController\CostCenterWorkInProgressController.cs" />

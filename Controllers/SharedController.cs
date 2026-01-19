@@ -2,6 +2,7 @@
 using MISReports_Api.DAL.SolarInformation.SolarPVConnections;
 using MISReports_Api.DAL.SolarInformation.SolarPaymentRetail;
 using MISReports_Api.DAL.Shared;
+using MISReports_Api.DAL;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Web.Http;
@@ -20,10 +21,47 @@ namespace MISReports_Api.Controllers
         private readonly RegionOrdinaryDao _regionOrdinaryDao = new RegionOrdinaryDao();
         private readonly BillCycleOrdinaryDao _billCycleOrdinaryDao = new BillCycleOrdinaryDao();
         private readonly BillCycleRetailDao _billCycleRetailDao = new BillCycleRetailDao();
+        private readonly AreasRepository _areasRepository = new AreasRepository();
+
+        [HttpGet]
+        [Route("ordinary/areas")]
+        public IHttpActionResult GetAreas()
+        {
+            try
+            {
+                if (!_areasDao.TestConnection(out string connError))
+                {
+                    return Ok(JObject.FromObject(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    }));
+                }
+
+                var areas = _areasRepository.GetAreas();
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = areas,
+                    errorMessage = (string)null
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get areas data.",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
 
         [HttpGet]
         [Route("bulk/areas")]
-        public IHttpActionResult GetAreas()
+        public IHttpActionResult GetBulkAreas()
         {
             try
             {
