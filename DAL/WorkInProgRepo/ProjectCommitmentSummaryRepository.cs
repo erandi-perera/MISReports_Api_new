@@ -48,7 +48,7 @@ namespace MISReports_Api.DAL
                             WHERE T1.estimate_no = T3.estimate_no
                               AND T1.dept_id = T3.dept_id
                               AND T1.dept_id = :deptId
-                              AND T1.cat_cd NOT IN ('MTN','MAIN','MAINT','MTN_TL','MTN_TL_REH','BDJ','7840','LSF','MAINTENANCE','AMU','MNT','EMU','PSF','FSM')
+                              AND T1.cat_cd NOT IN ('MTN','MAIN','MAINT','MTN_TL','MTN_TL_REH','BDJ','7840','LSF','MAINTENANCE','AMU','MNT','EMU','PSF','FSM','MDR')
                               AND T1.status <> 3
                             GROUP BY
                               (CASE
