@@ -53,7 +53,6 @@ namespace MISReports_Api.Controllers
                     });
                 }
 
-                // Standardized success response (same pattern as supervisor)
                 return Ok(new
                 {
                     success = true,

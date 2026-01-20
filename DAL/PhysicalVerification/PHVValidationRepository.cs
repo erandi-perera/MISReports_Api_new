@@ -59,6 +59,7 @@ namespace MISReports_Api.DAL.PhysicalVerification
             {
                 cmd.BindByName = true;
 
+
                 cmd.Parameters.Add("dept_id", OracleDbType.Varchar2).Value = deptId;
                 cmd.Parameters.Add("rep_year", OracleDbType.Varchar2).Value = repYear;
                 cmd.Parameters.Add("rep_month", OracleDbType.Varchar2).Value = repMonth;

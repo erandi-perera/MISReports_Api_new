@@ -291,6 +291,7 @@
     <Compile Include="Controllers\PhysicalVerification\PHVEntryFormController.cs" />
     <Compile Include="Controllers\PhysicalVerification\PHVValidationController.cs" />
     <Compile Include="Controllers\PIV\ConsolidatedOutputVATController.cs" />
+    <Compile Include="Controllers\PhysicalVerification\PHVValidationWarehousewiseController.cs" />
     <Compile Include="Controllers\PIV\OtherCCtoProvinceController.cs" />
     <Compile Include="Controllers\PIV\PIVbyBanksController.cs" />
     <Compile Include="Controllers\PIV\PivByPeopleBankController.cs" />
@@ -306,6 +307,7 @@
     <Compile Include="Controllers\PIV\RegionalPIVStampDutyController.cs" />
     <Compile Include="Controllers\PIV\StampDutyDetailedController.cs" />
     <Compile Include="Controllers\PIV\TypewisePIVController.cs" />
+    <Compile Include="Controllers\SharedController.cs" />
     <Compile Include="Controllers\SolarDetails\SolarBillingController.cs" />
     <Compile Include="Controllers\SolarDetails\SolarPendingJobsController.cs" />
     <Compile Include="Controllers\WorkInProgController\CostCenterWorkInProgressController.cs" />
@@ -343,6 +345,7 @@
     <Compile Include="DAL\PhysicalVerification\PHVEntryFormRepository.cs" />
     <Compile Include="DAL\PhysicalVerification\PHVValidationRepository.cs" />
     <Compile Include="DAL\PIV\ConsolidatedOutputVATRepository.cs" />
+    <Compile Include="DAL\PhysicalVerification\PHVValidationWarehousewiseRepository.cs" />
     <Compile Include="DAL\PIV\OtherCCtoProvinceRepository.cs" />
     <Compile Include="DAL\PIV\PIVbyBanksRepository.cs" />
     <Compile Include="DAL\PIV\PivByPeopleBankRepository.cs" />
@@ -436,6 +439,7 @@
     <Compile Include="Models\PhysicalVerification\PHVEntryFormModel.cs" />
     <Compile Include="Models\PhysicalVerification\PHVValidationModel.cs" />
     <Compile Include="Models\PIV\ConsolidatedOutputVATModel.cs" />
+    <Compile Include="Models\PhysicalVerification\PHVValidationWarehousewiseModel.cs" />
     <Compile Include="Models\PIV\OtherCCtoProvinceModel.cs" />
     <Compile Include="Models\PIV\PIVbyBanksModel.cs" />
     <Compile Include="Models\PIV\PivByPeopleBankModel.cs" />
