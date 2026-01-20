@@ -1,6 +1,7 @@
 ﻿using MISReports_Api.DAL.SolarInformation.SolarProgressClarification;
 using MISReports_Api.DAL.SolarInformation.SolarPVConnections;
 using MISReports_Api.DAL.SolarInformation.SolarPaymentRetail;
+using MISReports_Api.DAL.SolarInformation.SolarPVCapacity;
 using MISReports_Api.DAL.Shared;
 using MISReports_Api.DAL;
 using Newtonsoft.Json.Linq;
@@ -22,6 +23,7 @@ namespace MISReports_Api.Controllers
         private readonly BillCycleOrdinaryDao _billCycleOrdinaryDao = new BillCycleOrdinaryDao();
         private readonly BillCycleRetailDao _billCycleRetailDao = new BillCycleRetailDao();
         private readonly AreasRepository _areasRepository = new AreasRepository();
+        private readonly PVCapacityBillCycleDao _pVCapacityBillCycleDao = new PVCapacityBillCycleDao();
 
         [HttpGet]
         [Route("ordinary/areas")]
@@ -316,6 +318,31 @@ namespace MISReports_Api.Controllers
             try
             {
                 var result = _billCycleRetailDao.GetLast24BillCycles();//From netmtcons table in InformixConnection database
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = result,
+                    errorMessage = result.ErrorMessage
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get max bill cycle",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        [HttpGet]
+        [Route("ordinary/netprogrs/billcycle/max")] //solarPVCapacity/billcycle/max
+        public IHttpActionResult GetPVCapacityMaxBillCycle()
+        {
+            try
+            {
+                var result = _pVCapacityBillCycleDao.GetLast24BillCycles();//From netprogrs table in InformixConnection database
 
                 return Ok(JObject.FromObject(new
                 {

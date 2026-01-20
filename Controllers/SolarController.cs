@@ -27,7 +27,6 @@ namespace MISReports_Api.Controllers
         private readonly RetailDetailedDao _retailDetailedDao = new RetailDetailedDao();
         private readonly OrdSummaryDao _ordSummaryDao = new OrdSummaryDao();
         private readonly BulkSummaryDao _bulkSummaryDao = new BulkSummaryDao();
-        private readonly PVCapacityBillCycleDao _pVCapacityBillCycleDao = new PVCapacityBillCycleDao();
         private readonly PVCapacityOrdinaryDao _pvCapacityOrdinaryDao = new PVCapacityOrdinaryDao();
         private readonly PVCapacityBulkDao _pvCapacityBulkDao = new PVCapacityBulkDao();
         private readonly PVCapacitySummaryDao _pvCapacitySummaryDao = new PVCapacitySummaryDao();
@@ -991,30 +990,6 @@ namespace MISReports_Api.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("solarPVCapacity/billcycle/max")]
-        public IHttpActionResult GetPVCapacityMaxBillCycle()
-        {
-            try
-            {
-                var result = _pVCapacityBillCycleDao.GetLast24BillCycles();//From netprogrs table in InformixConnection database
-
-                return Ok(JObject.FromObject(new
-                {
-                    data = result,
-                    errorMessage = result.ErrorMessage
-                }));
-            }
-            catch (Exception ex)
-            {
-                return Ok(JObject.FromObject(new
-                {
-                    data = (object)null,
-                    errorMessage = "Cannot get max bill cycle",
-                    errorDetails = ex.Message
-                }));
-            }
-        }
 
         [HttpGet]
         [Route("solarPVCapacity/ordinary")]
