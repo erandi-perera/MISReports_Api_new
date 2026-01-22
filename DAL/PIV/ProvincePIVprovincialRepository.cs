@@ -37,7 +37,7 @@ namespace MISReports_Api.Repositories
                 INNER JOIN piv_amount a
                     ON c.piv_no = a.piv_no
                    AND c.dept_id = a.dept_id
-                WHERE TRIM(c.status) IN ('Q', 'P', 'F')
+                WHERE TRIM(c.status) IN ('Q', 'P', 'F', 'FR', 'FA')
                   AND c.paid_dept_id IN (
                     SELECT x.dept_id
                     FROM gldeptm x

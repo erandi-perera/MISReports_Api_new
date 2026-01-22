@@ -1,8 +1,8 @@
-﻿// File: Controllers/ProvincePIVbankController.cs
-using MISReports_Api.Models;
+﻿//01.Branch/Province wise PIV Collections Paid to Bank
+
 using MISReports_Api.Repositories;
 using System;
-using System.Collections.Generic;
+using System.Globalization;
 using System.Web.Http;
 
 namespace MISReports_Api.Controllers
@@ -12,27 +12,34 @@ namespace MISReports_Api.Controllers
     {
         private readonly ProvincePIVbankRepository _repository = new ProvincePIVbankRepository();
 
-        // GET api/provincepivbank/get?compId=001&fromDate=20250101&toDate=20251231
+        /// <summary>
+        /// GET: api/provincepivbank/get?compId=001&fromDate=20250101&toDate=20251231
+        /// </summary>
         [HttpGet]
         [Route("get")]
         public IHttpActionResult Get(string compId, string fromDate, string toDate)
         {
-            if (string.IsNullOrWhiteSpace(compId) || string.IsNullOrWhiteSpace(fromDate) || string.IsNullOrWhiteSpace(toDate))
-                return BadRequest("compId, fromDate and toDate are required.");
+            if (string.IsNullOrWhiteSpace(compId) ||
+                string.IsNullOrWhiteSpace(fromDate) ||
+                string.IsNullOrWhiteSpace(toDate))
+            {
+                return BadRequest("Parameters compId, fromDate, and toDate are required.");
+            }
 
-            if (!DateTime.TryParseExact(fromDate, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out DateTime fromDt) ||
-                !DateTime.TryParseExact(toDate, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out DateTime toDt))
-                return BadRequest("Date format must be yyyyMMdd (example: 20250101)");
+            if (!DateTime.TryParseExact(fromDate, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fromDt) ||
+                !DateTime.TryParseExact(toDate, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime toDt))
+            {
+                return BadRequest("Date format must be yyyyMMdd (e.g., 20250101)");
+            }
 
             try
             {
-                List<ProvincePIVbankModel> data = _repository.GetReport(compId, fromDt, toDt);
+                var data = _repository.GetProvincePIVbankReport(compId, fromDt, toDt);
                 return Ok(data);
             }
             catch (Exception ex)
             {
-                // In production: use your logging framework (NLog, log4net, etc.)
-                return InternalServerError(ex);
+                return InternalServerError(new Exception("Error fetching Province PIV Bank report.", ex));
             }
         }
     }

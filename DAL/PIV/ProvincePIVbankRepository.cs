@@ -1,4 +1,5 @@
-﻿// File: Repositories/ProvincePIVbankRepository.cs
+﻿//01.Branch/Province wise PIV Collections Paid to Bank
+
 using MISReports_Api.Models;
 using Oracle.ManagedDataAccess.Client;
 using System;
@@ -9,10 +10,13 @@ namespace MISReports_Api.Repositories
 {
     public class ProvincePIVbankRepository
     {
-        private readonly string _connectionString = ConfigurationManager.ConnectionStrings["HQOracle"].ConnectionString;
+        private readonly string _connectionString =
+            ConfigurationManager.ConnectionStrings["HQOracle"].ConnectionString;
 
-        // Updated Repository Method (Replace GetReport)
-        public List<ProvincePIVbankModel> GetReport(string compId, DateTime fromDate, DateTime toDate)
+        public List<ProvincePIVbankModel> GetProvincePIVbankReport(
+            string compId,
+            DateTime fromDate,
+            DateTime toDate)
         {
             var result = new List<ProvincePIVbankModel>();
 
@@ -39,10 +43,10 @@ namespace MISReports_Api.Repositories
             a.amount AS Amount
         FROM piv_detail c
         INNER JOIN piv_amount a ON c.piv_no = a.piv_no AND c.dept_id = a.dept_id
-        WHERE TRIM(c.status) IN ('Q', 'P', 'F')
+        WHERE TRIM(c.status) IN ('Q', 'P', 'F', 'FR', 'FA')
           AND c.paid_dept_id = '000.00'
           AND c.paid_date >= :fromDate
-          AND c.paid_date < :toDatePlusOne
+          AND c.paid_date <= :toDate
           AND c.dept_id IN (
               SELECT x.dept_id
               FROM gldeptm x
@@ -53,53 +57,37 @@ namespace MISReports_Api.Repositories
           )
         ORDER BY c.dept_id, c.piv_no, a.account_code";
 
-            // This query returns ONE row per account split — which is correct
-            // But we will group in C# below to ensure clean output if needed
-            using (var con = new OracleConnection(_connectionString))
-            using (var cmd = new OracleCommand(sql, con))
+            using (var conn = new OracleConnection(_connectionString))
+            using (var cmd = new OracleCommand(sql, conn))
             {
+                cmd.BindByName = true;
                 cmd.Parameters.Add(new OracleParameter("compId", OracleDbType.Varchar2) { Value = compId });
                 cmd.Parameters.Add(new OracleParameter("fromDate", OracleDbType.Date) { Value = fromDate.Date });
-                cmd.Parameters.Add(new OracleParameter("toDatePlusOne", OracleDbType.Date) { Value = toDate.AddDays(1).Date });
+                cmd.Parameters.Add(new OracleParameter("toDate", OracleDbType.Date) { Value = toDate.Date });
 
-                con.Open();
+                conn.Open();
                 using (var reader = cmd.ExecuteReader())
                 {
-                    var pivDict = new Dictionary<string, ProvincePIVbankModel>();
-
                     while (reader.Read())
                     {
-                        string key = $"{reader["CostCenter"]}|{reader["PivNo"]}|{reader["PaidDate"]:yyyyMMdd}";
-
-                        if (!pivDict.TryGetValue(key, out var model))
+                        var item = new ProvincePIVbankModel
                         {
-                            model = new ProvincePIVbankModel
-                            {
-                                CostCenter = reader["CostCenter"].ToString() ?? "",
-                                PivNo = reader["PivNo"].ToString() ?? "",
-                                PivReceiptNo = reader["PivReceiptNo"].ToString() ?? "",
-                                PivDate = reader["PivDate"] as DateTime?,
-                                PaidDate = reader["PaidDate"] as DateTime?,
-                                ChequeNo = reader["ChequeNo"].ToString() ?? "",
-                                BankCheckNo = reader["BankCheckNo"].ToString() ?? "",
-                                GrandTotal = Convert.ToDecimal(reader["GrandTotal"]),
-                                PaymentMode = reader["PaymentMode"].ToString() ?? "",
-                                CCT_NAME = reader["CCT_NAME"].ToString() ?? "",
-                                COMPANY_NAME = reader["COMPANY_NAME"].ToString() ?? "",
-                                AccountCode = reader["AccountCode"].ToString() ?? "",
-                                Amount = Convert.ToDecimal(reader["Amount"])
-                            };
-                            pivDict[key] = model;
-                        }
-                        else
-                        {
-                            // Already exists → just update account/amount (in case of multiple lines)
-                            model.AccountCode = reader["AccountCode"].ToString() ?? "";
-                            model.Amount = Convert.ToDecimal(reader["Amount"]);
-                        }
+                            CostCenter = reader["CostCenter"]?.ToString() ?? "",
+                            PivNo = reader["PivNo"]?.ToString() ?? "",
+                            PivReceiptNo = reader["PivReceiptNo"]?.ToString() ?? "",
+                            PivDate = reader["PivDate"] != DBNull.Value ? Convert.ToDateTime(reader["PivDate"]) : (DateTime?)null,
+                            PaidDate = reader["PaidDate"] != DBNull.Value ? Convert.ToDateTime(reader["PaidDate"]) : (DateTime?)null,
+                            ChequeNo = reader["ChequeNo"]?.ToString() ?? "",
+                            BankCheckNo = reader["BankCheckNo"]?.ToString() ?? "",
+                            GrandTotal = reader["GrandTotal"] != DBNull.Value ? Convert.ToDecimal(reader["GrandTotal"]) : 0m,
+                            PaymentMode = reader["PaymentMode"]?.ToString() ?? "",
+                            CCT_NAME = reader["CCT_NAME"]?.ToString() ?? "",
+                            COMPANY_NAME = reader["COMPANY_NAME"]?.ToString() ?? "",
+                            AccountCode = reader["AccountCode"]?.ToString() ?? "",
+                            Amount = reader["Amount"] != DBNull.Value ? Convert.ToDecimal(reader["Amount"]) : 0m
+                        };
+                        result.Add(item);
                     }
-
-                    result.AddRange(pivDict.Values);
                 }
             }
 

@@ -5,7 +5,6 @@ using MISReports_Api.DAL.SolarInformation.SolarPVCapacity;
 using MISReports_Api.DAL.SolarInformation.SolarConnectionDetails;
 using MISReports_Api.DAO.SolarInformation.SolarCustomerInformation;
 using MISReports_Api.DAL.SolarInformation;
-using MISReports_Api.DAL.Shared;
 using MISReports_Api.Models.SolarInformation;
 using Newtonsoft.Json.Linq;
 using System;
@@ -18,25 +17,16 @@ namespace MISReports_Api.Controllers
     [RoutePrefix("solarapi")]
     public class SolarController : ApiController
     {
-        private readonly AreasDao _areasDao = new AreasDao();
-        private readonly ProvinceDao _provinceDao = new ProvinceDao();
-        private readonly RegionDao _regionDao = new RegionDao();
-        private readonly BillCycleDao _billCycleDao = new BillCycleDao();
-        private readonly PVBillCycleDao _pvBillCycleDao = new PVBillCycleDao();
+        
         private readonly DetailedDao _detailedDao = new DetailedDao();
         private readonly SummaryDao _summaryDao = new SummaryDao();
         private readonly PVConnectionDao _pvConnectionDao = new PVConnectionDao();
         private readonly PVBulkConnectionDao _pvBulkConnectionDao = new PVBulkConnectionDao();
         private readonly OrdinaryDetailedDao _ordinaryDetailedDao = new OrdinaryDetailedDao();
         private readonly OrdinarySummaryDao _ordinarySummaryDao = new OrdinarySummaryDao();
-        private readonly ProvinceOrdinaryDao _provinceOrdinaryDao = new ProvinceOrdinaryDao();
-        private readonly RegionOrdinaryDao _regionOrdinaryDao = new RegionOrdinaryDao();
-        private readonly BillCycleOrdinaryDao _billCycleOrdinaryDao = new BillCycleOrdinaryDao();
-        private readonly BillCycleRetailDao _billCycleRetailDao = new BillCycleRetailDao();
         private readonly RetailDetailedDao _retailDetailedDao = new RetailDetailedDao();
         private readonly OrdSummaryDao _ordSummaryDao = new OrdSummaryDao();
         private readonly BulkSummaryDao _bulkSummaryDao = new BulkSummaryDao();
-        private readonly PVCapacityBillCycleDao _pVCapacityBillCycleDao = new PVCapacityBillCycleDao();
         private readonly PVCapacityOrdinaryDao _pvCapacityOrdinaryDao = new PVCapacityOrdinaryDao();
         private readonly PVCapacityBulkDao _pvCapacityBulkDao = new PVCapacityBulkDao();
         private readonly PVCapacitySummaryDao _pvCapacitySummaryDao = new PVCapacitySummaryDao();
@@ -47,281 +37,7 @@ namespace MISReports_Api.Controllers
         private readonly SolarCustomerInforOrdinaryDao _solarCustomerInforOrdinaryDao = new SolarCustomerInforOrdinaryDao();
         private readonly SolarCustomerInforBulkDao _solarCustomerInforBulkDao = new SolarCustomerInforBulkDao();
 
-        [HttpGet]
-        [Route("areas")]
-        public IHttpActionResult GetAreas()
-        {
-            try
-            {
-                if (!_areasDao.TestConnection(out string connError))
-                {
-                    return Ok(JObject.FromObject(new
-                    {
-                        data = (object)null,
-                        errorMessage = "Database connection failed.",
-                        errorDetails = connError
-                    }));
-                }
-
-                var areas = _areasDao.GetAreas();
-
-                return Ok(JObject.FromObject(new
-                {
-                    data = areas,
-                    errorMessage = (string)null
-                }));
-            }
-            catch (Exception ex)
-            {
-                return Ok(JObject.FromObject(new
-                {
-                    data = (object)null,
-                    errorMessage = "Cannot get areas data.",
-                    errorDetails = ex.Message
-                }));
-            }
-        }
-
-        [HttpGet]
-        [Route("province")]
-        public IHttpActionResult GetProvince()
-        {
-            try
-            {
-                if (!_provinceDao.TestConnection(out string connError))
-                {
-                    return Ok(JObject.FromObject(new
-                    {
-                        data = (object)null,
-                        errorMessage = "Database connection failed.",
-                        errorDetails = connError
-                    }));
-                }
-
-                var province = _provinceDao.GetProvince();
-
-                return Ok(JObject.FromObject(new
-                {
-                    data = province,
-                    errorMessage = (string)null
-                }));
-            }
-            catch (Exception ex)
-            {
-                return Ok(JObject.FromObject(new
-                {
-                    data = (object)null,
-                    errorMessage = "Cannot get province data.",
-                    errorDetails = ex.Message
-                }));
-            }
-        }
-
-        [HttpGet]
-        [Route("ordinary/province")]
-        public IHttpActionResult GetOrdinaryProvince()
-        {
-            try
-            {
-                if (!_provinceOrdinaryDao.TestConnection(out string connError))
-                {
-                    return Ok(JObject.FromObject(new
-                    {
-                        data = (object)null,
-                        errorMessage = "Database connection failed.",
-                        errorDetails = connError
-                    }));
-                }
-
-                var province = _provinceOrdinaryDao.GetProvince();
-
-                return Ok(JObject.FromObject(new
-                {
-                    data = province,
-                    errorMessage = (string)null
-                }));
-            }
-            catch (Exception ex)
-            {
-                return Ok(JObject.FromObject(new
-                {
-                    data = (object)null,
-                    errorMessage = "Cannot get province data.",
-                    errorDetails = ex.Message
-                }));
-            }
-        }
-
-        [HttpGet]
-        [Route("region")]
-        public IHttpActionResult GetRegion()
-        {
-            try
-            {
-                if (!_regionDao.TestConnection(out string connError))
-                {
-                    return Ok(JObject.FromObject(new
-                    {
-                        data = (object)null,
-                        errorMessage = "Database connection failed.",
-                        errorDetails = connError
-                    }));
-                }
-
-                var region = _regionDao.GetRegion();
-
-                return Ok(JObject.FromObject(new
-                {
-                    data = region,
-                    errorMessage = (string)null
-                }));
-            }
-            catch (Exception ex)
-            {
-                return Ok(JObject.FromObject(new
-                {
-                    data = (object)null,
-                    errorMessage = "Cannot get region data.",
-                    errorDetails = ex.Message
-                }));
-            }
-        }
-
-        [HttpGet]
-        [Route("ordinary/region")]
-        public IHttpActionResult GetOrdinaryRegion()
-        {
-            try
-            {
-                if (!_regionOrdinaryDao.TestConnection(out string connError))
-                {
-                    return Ok(JObject.FromObject(new
-                    {
-                        data = (object)null,
-                        errorMessage = "Database connection failed.",
-                        errorDetails = connError
-                    }));
-                }
-
-                var region = _regionOrdinaryDao.GetRegion();
-
-                return Ok(JObject.FromObject(new
-                {
-                    data = region,
-                    errorMessage = (string)null
-                }));
-            }
-            catch (Exception ex)
-            {
-                return Ok(JObject.FromObject(new
-                {
-                    data = (object)null,
-                    errorMessage = "Cannot get region data.",
-                    errorDetails = ex.Message
-                }));
-            }
-        }
-
-        [HttpGet]
-        [Route("billcycle/max")]
-        public IHttpActionResult GetMaxBillCycle()
-        {
-            try
-            {
-                var result = _billCycleDao.GetLast24BillCycles();//From netmtchg table in InformixBulkConnection database
-
-                return Ok(JObject.FromObject(new
-                {
-                    data = result,
-                    errorMessage = result.ErrorMessage
-                }));
-            }
-            catch (Exception ex)
-            {
-                return Ok(JObject.FromObject(new
-                {
-                    data = (object)null,
-                    errorMessage = "Cannot get max bill cycle",
-                    errorDetails = ex.Message
-                }));
-            }
-        }
-
-        [HttpGet]
-        [Route("bill-cycle")]
-        public IHttpActionResult GetPVBillCycle()
-        {
-            try
-            {
-                var result = _pvBillCycleDao.GetLast24BillCycles();//From netmtcons table in InformixBulkConnection database
-
-                return Ok(JObject.FromObject(new
-                {
-                    data = result,
-                    errorMessage = result.ErrorMessage
-                }));
-            }
-            catch (Exception ex)
-            {
-                return Ok(JObject.FromObject(new
-                {
-                    data = (object)null,
-                    errorMessage = "Cannot get max bill cycle",
-                    errorDetails = ex.Message
-                }));
-            }
-        }
-
-        [HttpGet]
-        [Route("ordinary/bill-cycle")]
-        public IHttpActionResult GetOrdinaryBillCycle()
-        {
-            try
-            {
-                var result = _billCycleOrdinaryDao.GetLast24BillCycles();//From netmtchg table in InformixConnection database
-
-                return Ok(JObject.FromObject(new
-                {
-                    data = result,
-                    errorMessage = result.ErrorMessage
-                }));
-            }
-            catch (Exception ex)
-            {
-                return Ok(JObject.FromObject(new
-                {
-                    data = (object)null,
-                    errorMessage = "Cannot get max bill cycle",
-                    errorDetails = ex.Message
-                }));
-            }
-        }
-
-        [HttpGet]
-        [Route("retail/billcycle")]
-        public IHttpActionResult GetRetailBillCycle()
-        {
-            try
-            {
-                var result = _billCycleRetailDao.GetLast24BillCycles();//From netmtcons table in InformixConnection database
-
-                return Ok(JObject.FromObject(new
-                {
-                    data = result,
-                    errorMessage = result.ErrorMessage
-                }));
-            }
-            catch (Exception ex)
-            {
-                return Ok(JObject.FromObject(new
-                {
-                    data = (object)null,
-                    errorMessage = "Cannot get max bill cycle",
-                    errorDetails = ex.Message
-                }));
-            }
-        }
-
+       
         [HttpGet]
         [Route("solar-progress/detailed")]
         public IHttpActionResult GetDetailedReport(
@@ -1274,30 +990,6 @@ namespace MISReports_Api.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("solarPVCapacity/billcycle/max")]
-        public IHttpActionResult GetPVCapacityMaxBillCycle()
-        {
-            try
-            {
-                var result = _pVCapacityBillCycleDao.GetLast24BillCycles();//From netprogrs table in InformixConnection database
-
-                return Ok(JObject.FromObject(new
-                {
-                    data = result,
-                    errorMessage = result.ErrorMessage
-                }));
-            }
-            catch (Exception ex)
-            {
-                return Ok(JObject.FromObject(new
-                {
-                    data = (object)null,
-                    errorMessage = "Cannot get max bill cycle",
-                    errorDetails = ex.Message
-                }));
-            }
-        }
 
         [HttpGet]
         [Route("solarPVCapacity/ordinary")]

@@ -91,7 +91,7 @@ namespace MISReports_Api.DAL
                               and T2.dept_id = :deptId
                               and T2.project_no = T3.project_no
                               and T2.fund_id = T3.fund_id
-                              and T2.cat_cd not in ('MTN','MAIN','MAINT','MTN_TL','MTN_TL_REH','BDJ','7840','LSF','MAINTENANCE','AMU','MNT','EMU','PSF','FSM')
+                              and T2.cat_cd not in ('MTN','MAIN','MAINT','MTN_TL','MTN_TL_REH','BDJ','7840','LSF','MAINTENANCE','AMU','MNT','EMU','PSF','FSM','MDR')
                               and T2.status <> 3
                             group by T2.prj_ass_dt, T2.project_no, T2.cat_cd, T2.fund_source,
                                      T3.wip_yr, T3.wip_mth, T1.res_type, T1.commited_cost,
@@ -141,7 +141,7 @@ namespace MISReports_Api.DAL
                             where T2.estimate_no = T1.estimate_no
                               and T2.dept_id = T1.dept_id
                               and T2.dept_id = :deptId
-                              and trim(T2.cat_cd) not in ('MTN','MAIN','MAINT','MTN_TL','MTN_TL_REH','BDJ','7840','LSF','MAINTENANCE','AMU','MNT','EMU','PSF','FSM')
+                              and trim(T2.cat_cd) not in ('MTN','MAIN','MAINT','MTN_TL','MTN_TL_REH','BDJ','7840','LSF','MAINTENANCE','AMU','MNT','EMU','PSF','FSM','MDR')
                               and T2.status <> 3
                               and T2.project_no not in (select project_no from pcwiph)
                             group by T2.prj_ass_dt, T2.project_no, T2.cat_cd, T2.fund_source,

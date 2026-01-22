@@ -47,7 +47,7 @@ namespace MISReports_Api.DAL
                                 (SELECT dept_nm FROM gldeptm WHERE dept_id = :deptId) AS cct_name
                             FROM pcesthmt T1
                             WHERE T1.dept_id = :deptId
-                              AND T1.cat_cd NOT IN ('MTN','MAIN','MAINT','MTN_TL','MTN_TL_REH','BDJ','7840','LSF','MAINTENANCE','AMU','MNT','EMU','PSF','FSM')
+                              AND T1.cat_cd NOT IN ('MTN','MAIN','MAINT','MTN_TL','MTN_TL_REH','BDJ','7840','LSF','MAINTENANCE','AMU','MNT','EMU','PSF','FSM','MDR')
                               AND T1.status <> 3
                             GROUP BY
                                 (CASE
