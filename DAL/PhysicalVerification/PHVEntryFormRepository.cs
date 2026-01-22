@@ -12,7 +12,6 @@ namespace MISReports_Api.DAL.PhysicalVerification
         private readonly string _connectionString =
             ConfigurationManager.ConnectionStrings["HQOracle"].ConnectionString;
 
-        // Async version using existing PHVEntryFormModel
         public async Task<List<PHVEntryFormModel>> GetPhysicalVerificationDataAsync(
             string deptId,
             string docNo)
