@@ -23,12 +23,12 @@ namespace MISReports_Api.DAL
 
                     string sql = @"
                         SELECT DISTINCT(wrh_cd) AS WarehouseCode
-                        FROM inwrhm 
+                        FROM inwrhm
                         WHERE status = 2
                           AND TRIM(dept_id) IN (
-                                SELECT TRIM(costcentre) 
+                                SELECT TRIM(costcentre)
                                 FROM rep_roles_cct_new cct, rep_role_new r
-                                WHERE r.roleid = cct.roleid
+                                WHERE Trim(r.roleid) = Trim(cct.roleid)
                                   AND cct.lvl_no = 0
                                   AND r.epf_no = :epfno
                           )";
