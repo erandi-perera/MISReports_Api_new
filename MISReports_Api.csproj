@@ -288,6 +288,7 @@
     <Compile Include="Controllers\LedgerCard\LedgerCardController.cs" />
     <Compile Include="Controllers\LedgerCard\LedgerCardTotalController.cs" />
     <Compile Include="Controllers\PhysicalVerification\AnnualVerificationSheetController.cs" />
+    <Compile Include="Controllers\PhysicalVerification\AnnualVerificationWHwiseSignatureController.cs" />
     <Compile Include="Controllers\PIV\BranchWisePivBothController.cs" />
     <Compile Include="Controllers\PhysicalVerification\PHVEntryFormController.cs" />
     <Compile Include="Controllers\PhysicalVerification\PHVValidationController.cs" />
@@ -345,6 +346,7 @@
     <Compile Include="DAL\LedgerCard\DivisionalLedgerCardRepository.cs" />
     <Compile Include="DAL\LedgerCard\LedgerCardTotalRepository.cs" />
     <Compile Include="DAL\PhysicalVerification\AnnualVerificationSheetRepository.cs" />
+    <Compile Include="DAL\PhysicalVerification\AnnualVerificationWHwiseSignatureRepository.cs" />
     <Compile Include="DAL\PIV\BranchWisePivBothRepository.cs" />
     <Compile Include="DAL\PhysicalVerification\PHVEntryFormRepository.cs" />
     <Compile Include="DAL\PhysicalVerification\PHVValidationRepository.cs" />
@@ -442,6 +444,7 @@
     <Compile Include="Models\LedgerCard\LedgerCardTotalModel.cs" />
     <Compile Include="Models\OUMModels.cs" />
     <Compile Include="Models\PhysicalVerification\AnnualVerificationSheetModel.cs" />
+    <Compile Include="Models\PhysicalVerification\AnnualVerificationWHwiseSignatureModel.cs" />
     <Compile Include="Models\PIV\BranchWisePivBothModel.cs" />
     <Compile Include="Models\PhysicalVerification\PHVEntryFormModel.cs" />
     <Compile Include="Models\PhysicalVerification\PHVValidationModel.cs" />
