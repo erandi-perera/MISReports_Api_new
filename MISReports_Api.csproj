@@ -289,6 +289,7 @@
     <Compile Include="Controllers\LedgerCard\LedgerCardTotalController.cs" />
     <Compile Include="Controllers\PhysicalVerification\AnnualVerificationSheetController.cs" />
     <Compile Include="Controllers\PhysicalVerification\AnnualVerificationWHwiseSignatureController.cs" />
+    <Compile Include="Controllers\PIV\AccountCodesWisePivController.cs" />
     <Compile Include="Controllers\PIV\BranchWisePivBothController.cs" />
     <Compile Include="Controllers\PhysicalVerification\PHVEntryFormController.cs" />
     <Compile Include="Controllers\PhysicalVerification\PHVValidationController.cs" />
@@ -301,10 +302,13 @@
     <Compile Include="Controllers\PIV\PivChequeDepositController.cs" />
     <Compile Include="Controllers\PIV\PIVDetailsController.cs" />
     <Compile Include="Controllers\PIV\PivSearchController.cs" />
+    <Compile Include="Controllers\PIV\PosPaidPivTabulationSummaryAfmhqController.cs" />
+    <Compile Include="Controllers\PIV\ProvinceManualSetOffController.cs" />
     <Compile Include="Controllers\PIV\ProvincePIVAllController.cs" />
     <Compile Include="Controllers\PIV\ProvincePIVbankController.cs" />
     <Compile Include="Controllers\PIV\ProvincePivOtherCCController.cs" />
     <Compile Include="Controllers\PIV\ProvincePIVprovincialPOSController.cs" />
+    <Compile Include="Controllers\PIV\ProvinceSetOffReportController.cs" />
     <Compile Include="Controllers\PIV\ProvinceWisePIVStampDutyController.cs" />
     <Compile Include="Controllers\PIV\ProvincialConsolidatedOutputVATController.cs" />
     <Compile Include="Controllers\PIV\RegionalPIVStampDutyController.cs" />
@@ -347,6 +351,7 @@
     <Compile Include="DAL\LedgerCard\LedgerCardTotalRepository.cs" />
     <Compile Include="DAL\PhysicalVerification\AnnualVerificationSheetRepository.cs" />
     <Compile Include="DAL\PhysicalVerification\AnnualVerificationWHwiseSignatureRepository.cs" />
+    <Compile Include="DAL\PIV\AccountCodesWisePivRepository.cs" />
     <Compile Include="DAL\PIV\BranchWisePivBothRepository.cs" />
     <Compile Include="DAL\PhysicalVerification\PHVEntryFormRepository.cs" />
     <Compile Include="DAL\PhysicalVerification\PHVValidationRepository.cs" />
@@ -359,10 +364,13 @@
     <Compile Include="DAL\PIV\PivChequeDepositRepository.cs" />
     <Compile Include="DAL\PIV\PIVDetailsRepository.cs" />
     <Compile Include="DAL\PIV\PivSearchRepository.cs" />
+    <Compile Include="DAL\PIV\PosPaidPivTabulationSummaryAfmhqRepository.cs" />
+    <Compile Include="DAL\PIV\ProvinceManualSetOffRepository.cs" />
     <Compile Include="DAL\PIV\ProvincePIVAllRepository.cs" />
     <Compile Include="DAL\PIV\ProvincePIVbankRepository.cs" />
     <Compile Include="DAL\PIV\ProvincePivOtherCCRepository.cs" />
     <Compile Include="DAL\PIV\ProvincePIVprovincialRepository.cs" />
+    <Compile Include="DAL\PIV\ProvinceSetOffReportRepository.cs" />
     <Compile Include="DAL\PIV\ProvinceWisePIVStampDutyRepository.cs" />
     <Compile Include="DAL\PIV\ProvincialConsolidatedOutputVATRepository.cs" />
     <Compile Include="DAL\PIV\RegionalPIVStampDutyRepository.cs" />
@@ -445,6 +453,7 @@
     <Compile Include="Models\OUMModels.cs" />
     <Compile Include="Models\PhysicalVerification\AnnualVerificationSheetModel.cs" />
     <Compile Include="Models\PhysicalVerification\AnnualVerificationWHwiseSignatureModel.cs" />
+    <Compile Include="Models\PIV\accountCodesWisePivModel.cs" />
     <Compile Include="Models\PIV\BranchWisePivBothModel.cs" />
     <Compile Include="Models\PhysicalVerification\PHVEntryFormModel.cs" />
     <Compile Include="Models\PhysicalVerification\PHVValidationModel.cs" />
@@ -457,10 +466,13 @@
     <Compile Include="Models\PIV\PivChequeDepositModel.cs" />
     <Compile Include="Models\PIV\PIVDetailsReportModel.cs" />
     <Compile Include="Models\PIV\PivSearchModel.cs" />
+    <Compile Include="Models\PIV\PosPaidPivTabulationSummaryAfmhqModel.cs" />
+    <Compile Include="Models\PIV\ProvinceManualSetOffModel.cs" />
     <Compile Include="Models\PIV\ProvincePIVAllModel.cs" />
     <Compile Include="Models\PIV\ProvincePIVbankModel.cs" />
     <Compile Include="Models\PIV\ProvincePivOtherCC.model.cs" />
     <Compile Include="Models\PIV\ProvincePIVprovincialPOSModel.cs" />
+    <Compile Include="Models\PIV\ProvinceSetOffModel.cs" />
     <Compile Include="Models\PIV\ProvinceWisePIVStampDutyModel.cs" />
     <Compile Include="Models\PIV\ProvincialConsolidatedOutputVATModel.cs" />
     <Compile Include="Models\PIV\RegionalPIVStampDutyModel.cs" />
