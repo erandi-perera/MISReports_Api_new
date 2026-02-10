@@ -23,21 +23,27 @@ namespace MISReports_Api.Controllers
             int repMonth,
             string warehouseCode)
         {
+            if (string.IsNullOrWhiteSpace(deptId) || string.IsNullOrWhiteSpace(warehouseCode))
+                return BadRequest("Department Id and Warehouse Code are required.");
+
             try
             {
-                if (string.IsNullOrWhiteSpace(deptId) ||
-                    string.IsNullOrWhiteSpace(warehouseCode))
-                {
-                    return BadRequest("Department Id and Warehouse Code are required.");
-                }
-
                 var data = await _repository.GetShortageSurplusWHwiseAsync(
                     deptId.Trim(),
                     repYear,
                     repMonth,
-                    warehouseCode.Trim());
+                    warehouseCode.Trim()
+                );
 
-                return Json(data);
+                return Ok(data);
+            }
+            catch (Oracle.ManagedDataAccess.Client.OracleException ex)
+            {
+                // Handle specific Oracle errors like TEMP tablespace
+                if (ex.Number == 1652)
+                    return InternalServerError(new Exception("Database TEMP tablespace full. Consider optimizing the query or increasing TEMP tablespace."));
+
+                return InternalServerError(ex);
             }
             catch (Exception ex)
             {
