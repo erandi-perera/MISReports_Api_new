@@ -8,192 +8,156 @@ namespace MISReports_Api.DBAccess
     {
         private readonly string bulkConnectionString;
         private readonly string ordinaryConnectionString;
+        public OleDbConnection Provdb(string DBName)
+        {
+            try
+            {
+                string connectionstring = "Provider='Ifxoledbc.2';password=run10times;User ID=appadm1; Data Source='" + DBName + "'";
+                OleDbConnection connection = new OleDbConnection(connectionstring);
+                connection.Open();
+                return connection;
 
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
         public DBConnection()
         {
             try
             {
-                // Initialize connection strings with proper error handling
-                var bulkConnection = ConfigurationManager.ConnectionStrings["InformixBulkConnection"];
-                var ordinaryConnection = ConfigurationManager.ConnectionStrings["InformixConnection"];
+                var bulkConn = ConfigurationManager.ConnectionStrings["InformixBulkConnection"];
+                var ordinaryConn = ConfigurationManager.ConnectionStrings["InformixConnection"];
 
-                if (bulkConnection == null)
-                    throw new ConfigurationErrorsException("InformixBulkConnection string is missing from configuration");
+                if (bulkConn == null)
+                    throw new ConfigurationErrorsException("InformixBulkConnection is missing in web.config");
 
-                if (ordinaryConnection == null)
-                    throw new ConfigurationErrorsException("InformixConnection string is missing from configuration");
+                if (ordinaryConn == null)
+                    throw new ConfigurationErrorsException("InformixConnection is missing in web.config");
 
-                bulkConnectionString = bulkConnection.ConnectionString;
-                ordinaryConnectionString = ordinaryConnection.ConnectionString;
+                bulkConnectionString = bulkConn.ConnectionString;
+                ordinaryConnectionString = ordinaryConn.ConnectionString;
 
-                if (string.IsNullOrEmpty(bulkConnectionString))
-                    throw new ConfigurationErrorsException("InformixBulkConnection string is empty");
+                if (string.IsNullOrWhiteSpace(bulkConnectionString))
+                    throw new ConfigurationErrorsException("InformixBulkConnection is empty");
 
-                if (string.IsNullOrEmpty(ordinaryConnectionString))
-                    throw new ConfigurationErrorsException("InformixConnection string is empty");
-
-                System.Diagnostics.Trace.WriteLine("DBConnection initialized successfully");
-                System.Diagnostics.Trace.WriteLine($"InformixConnection string length: {ordinaryConnectionString.Length}");
-                System.Diagnostics.Trace.WriteLine($"InformixBulkConnection string length: {bulkConnectionString.Length}");
+                if (string.IsNullOrWhiteSpace(ordinaryConnectionString))
+                    throw new ConfigurationErrorsException("InformixConnection is empty");
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Trace.WriteLine($"DBConnection initialization error: {ex.Message}");
-                System.Diagnostics.Trace.WriteLine($"Stack Trace: {ex.StackTrace}");
                 throw;
             }
         }
 
-        // Test a specific connection type
-        public bool TestConnection(out string errorMessage, bool useBulkConnection = true)
-        {
-            string connString = useBulkConnection ? bulkConnectionString : ordinaryConnectionString;
-            errorMessage = null;
-
-            if (string.IsNullOrEmpty(connString))
-            {
-                errorMessage = "Connection string is null or empty";
-                System.Diagnostics.Trace.WriteLine(errorMessage);
-                return false;
-            }
-
-            try
-            {
-                using (var conn = new OleDbConnection(connString))
-                {
-                    System.Diagnostics.Trace.WriteLine($"Attempting to open {(useBulkConnection ? "Bulk" : "Ordinary")} connection");
-                    System.Diagnostics.Trace.WriteLine($"Connection string: {GetMaskedConnectionString(connString)}");
-
-                    conn.Open();
-
-                    System.Diagnostics.Trace.WriteLine($"{(useBulkConnection ? "Bulk" : "Ordinary")} connection opened successfully");
-                    System.Diagnostics.Trace.WriteLine($"Connection state: {conn.State}, Server version: {conn.ServerVersion}");
-
-                    return true;
-                }
-            }
-            catch (OleDbException oleEx)
-            {
-                errorMessage = $"OleDb Error: {oleEx.Message}, Error Code: {oleEx.ErrorCode}";
-                System.Diagnostics.Trace.WriteLine(errorMessage);
-                return false;
-            }
-            catch (Exception ex)
-            {
-                errorMessage = $"Connection failed: {ex.Message}";
-                System.Diagnostics.Trace.WriteLine(errorMessage);
-                System.Diagnostics.Trace.WriteLine($"Stack Trace: {ex.StackTrace}");
-                return false;
-            }
-        }
-
-        // Test both connections
-        public bool TestAllConnections(out string errorMessage)
-        {
-            errorMessage = string.Empty;
-            bool bulkSuccess = TestConnection(out string bulkError, true);
-            bool ordinarySuccess = TestConnection(out string ordinaryError, false);
-
-            if (!bulkSuccess || !ordinarySuccess)
-            {
-                errorMessage = $"Bulk Connection: {(bulkSuccess ? "OK" : bulkError)} | " +
-                               $"Ordinary Connection: {(ordinarySuccess ? "OK" : ordinaryError)}";
-                System.Diagnostics.Trace.WriteLine($"Connection test failed: {errorMessage}");
-                return false;
-            }
-
-            System.Diagnostics.Trace.WriteLine("Both connections tested successfully");
-            return true;
-        }
-
-        // Get a specific connection type
+        // =====================================================
+        // Ordinary / Bulk Informix
+        // =====================================================
         public OleDbConnection GetConnection(bool useBulkConnection = true)
         {
-            string connString = useBulkConnection ? bulkConnectionString : ordinaryConnectionString;
+            string connString = useBulkConnection
+                ? bulkConnectionString
+                : ordinaryConnectionString;
 
-            if (string.IsNullOrEmpty(connString))
-            {
-                throw new InvalidOperationException(
-                    useBulkConnection ?
-                    "Bulk connection string is not initialized" :
-                    "Ordinary connection string is not initialized");
-            }
+            if (string.IsNullOrWhiteSpace(connString))
+                throw new InvalidOperationException("Connection string is not initialized");
 
-            System.Diagnostics.Trace.WriteLine($"Creating {(useBulkConnection ? "Bulk" : "Ordinary")} connection");
             return new OleDbConnection(connString);
         }
 
-        // Get connection string for a specific type
-        public string GetConnectionString(bool useBulkConnection = true)
+        // =====================================================
+        // Solar Age – Dynamic Informix Connection
+        // =====================================================
+        public OleDbConnection GetSolarAgeConnection(string server)
         {
-            string connString = useBulkConnection ? bulkConnectionString : ordinaryConnectionString;
+            if (string.IsNullOrWhiteSpace(server))
+                throw new ArgumentException("Server name cannot be empty");
 
-            if (string.IsNullOrEmpty(connString))
-            {
-                throw new InvalidOperationException(
-                    useBulkConnection ?
-                    "Bulk connection string is not initialized" :
-                    "Ordinary connection string is not initialized");
-            }
+            string connName = $"SolarAge_{server}";
 
-            return connString;
+            var connSetting = ConfigurationManager.ConnectionStrings[connName];
+
+            if (connSetting == null)
+                throw new ConfigurationErrorsException(
+                    $"Connection string '{connName}' not found in web.config");
+
+            if (string.IsNullOrWhiteSpace(connSetting.ConnectionString))
+                throw new ConfigurationErrorsException(
+                    $"Connection string '{connName}' is empty");
+
+            return new OleDbConnection(connSetting.ConnectionString);
         }
 
-        // Properties for backward compatibility
-        public string BulkConnectionString
+        // =====================================================
+        // Test Connections
+        // =====================================================
+        public bool TestConnection(out string errorMessage, bool useBulkConnection = true)
         {
-            get
+            errorMessage = null;
+
+            try
             {
-                if (string.IsNullOrEmpty(bulkConnectionString))
-                    throw new InvalidOperationException("Bulk connection string is not initialized");
-                return bulkConnectionString;
+                using (var conn = GetConnection(useBulkConnection))
+                {
+                    conn.Open();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+                return false;
             }
         }
 
-        public string OrdinaryConnectionString
+        public bool TestSolarAgeConnection(string server, out string errorMessage)
         {
-            get
+            errorMessage = null;
+
+            try
             {
-                if (string.IsNullOrEmpty(ordinaryConnectionString))
-                    throw new InvalidOperationException("Ordinary connection string is not initialized");
-                return ordinaryConnectionString;
+                using (var conn = GetSolarAgeConnection(server))
+                {
+                    conn.Open();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                errorMessage = ex.Message;
+                return false;
             }
         }
 
-        // Helper method to mask sensitive information in connection string for logging
-        private string GetMaskedConnectionString(string connectionString)
+        // =====================================================
+        // Properties (Backward Compatibility)
+        // =====================================================
+        public string BulkConnectionString => bulkConnectionString;
+
+        public string OrdinaryConnectionString => ordinaryConnectionString;
+
+
+
+
+        // =====================================================
+        // Fixed Billsmry DB connection
+        // =====================================================
+        public OleDbConnection Billsmrydb()
         {
             try
             {
-                var builder = new OleDbConnectionStringBuilder(connectionString);
-
-                // Mask sensitive information
-                if (builder.ContainsKey("Password"))
-                    builder["Password"] = "***";
-                if (builder.ContainsKey("Pwd"))
-                    builder["Pwd"] = "***";
-                if (builder.ContainsKey("User ID"))
-                    builder["User ID"] = "***";
-                if (builder.ContainsKey("UID"))
-                    builder["UID"] = "***";
-
-                return builder.ConnectionString;
+                string connectionstring = "Provider='Ifxoledbc.2';password=payquery;User ID=payquery;Data Source='billsmry@hqinfdb10'";
+                OleDbConnection connection = new OleDbConnection(connectionstring);
+                connection.Open();
+                return connection;
             }
-            catch
+            catch (Exception ex)
             {
-                // If parsing fails, return a safe version
-                return "Connection string parsing failed";
+                throw new Exception("Billsmrydb connection failed: " + ex.Message);
             }
         }
 
-        // Additional diagnostic method
-        public string GetConnectionStatus()
-        {
-            bool bulkOk = TestConnection(out string bulkError, true);
-            bool ordinaryOk = TestConnection(out string ordinaryError, false);
 
-            return $"Bulk Connection: {(bulkOk ? "OK" : bulkError)}, " +
-                   $"Ordinary Connection: {(ordinaryOk ? "OK" : ordinaryError)}";
-        }
     }
 }
