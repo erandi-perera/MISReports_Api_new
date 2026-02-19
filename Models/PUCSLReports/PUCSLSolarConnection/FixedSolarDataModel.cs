@@ -27,7 +27,13 @@ namespace MISReports_Api.Models.PUCSLReports.PUCSLSolarConnection
         public decimal OrdinaryKwhAt2706 { get; set; }
         public decimal OrdinaryKwhOthers { get; set; }
 
-        
+        // --- kWh Purchased (Bulk) at each rate ---
+        public decimal BulkKwhAt1550 { get; set; }
+        public decimal BulkKwhAt22 { get; set; }
+        public decimal BulkKwhAt3450 { get; set; }
+        public decimal BulkKwhAt37 { get; set; }
+        public decimal BulkKwhAt2318 { get; set; }
+        public decimal BulkKwhAt2706 { get; set; }
 
         // --- Combined kWh Purchased (Ordinary + Bulk) returned to frontend ---
         public decimal KwhAt1550 { get; set; }
