@@ -108,7 +108,48 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                         model.PaidAmount += ordPaid;
                     }
 
-                    
+                    // ── BULK ──────────────────────────────────────────────────
+                    var bulkCodes = GetBulkTariffCodes(tc.TariffCat);
+                    if (bulkCodes != null && bulkCodes.Count > 0)
+                    {
+                        // Bulk database uses padded province codes
+                        string bulkTypeCode = request.TypeCode;
+                        if (reportType == SolarReportType.Province && request.TypeCode.Length == 1)
+                        {
+                            bulkTypeCode = request.TypeCode.PadLeft(2, '0');
+                        }
+
+                        model.BulkNoOfCustomers = GetBulkAccountCount(
+                            reportType, bulkTypeCode, request.BillCycle,
+                            bulkCodes, bulkNetType1, bulkNetType2, bulkIsDouble);
+
+                        var bulkRates = GetBulkSalesByTrackedRates(
+                            reportType, bulkTypeCode, request.BillCycle,
+                            bulkCodes, bulkNetType1, bulkNetType2, bulkIsDouble);
+
+                        model.BulkKwhAt1550 = GetUnits(bulkRates, "15.50");
+                        model.BulkKwhAt22 = GetUnits(bulkRates, "22");
+                        model.BulkKwhAt3450 = GetUnits(bulkRates, "34.50");
+                        model.BulkKwhAt37 = GetUnits(bulkRates, "37");
+                        model.BulkKwhAt2318 = GetUnits(bulkRates, "23.18");
+                        model.BulkKwhAt2706 = GetUnits(bulkRates, "27.06");
+
+                        decimal bulkPaid = 0;
+                        foreach (var kv in bulkRates) bulkPaid += kv.Value.KwhSales;
+                        model.PaidAmount += bulkPaid;
+                    }
+
+                    // ── COMBINE Ordinary + Bulk ───────────────────────────────
+                    model.NoOfCustomers = model.OrdinaryNoOfCustomers + model.BulkNoOfCustomers;
+                    model.KwhAt1550 = model.OrdinaryKwhAt1550 + model.BulkKwhAt1550;
+                    model.KwhAt22 = model.OrdinaryKwhAt22 + model.BulkKwhAt22;
+                    model.KwhAt3450 = model.OrdinaryKwhAt3450 + model.BulkKwhAt3450;
+                    model.KwhAt37 = model.OrdinaryKwhAt37 + model.BulkKwhAt37;
+                    model.KwhAt2318 = model.OrdinaryKwhAt2318 + model.BulkKwhAt2318;
+                    model.KwhAt2706 = model.OrdinaryKwhAt2706 + model.BulkKwhAt2706;
+                    model.KwhOthers = model.OrdinaryKwhOthers;
+                    model.ErrorMessage = string.Empty;
+                    results.Add(model);
                 }
 
                 logger.Info($"=== END GetFixedSolarDataReport — {results.Count} rows ===");
@@ -445,7 +486,148 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
         // ================================================================
         //  BULK — Account Count
         // ================================================================
-        
+        private int GetBulkAccountCount(SolarReportType rt, string typeCode,
+            string billCycle, List<string> tariffCodes,
+            string netType1, string netType2, bool isDouble)
+        {
+            try
+            {
+                using (var conn = _dbConnection.GetConnection(true))
+                {
+                    conn.Open();
+
+                    string inClause = string.Join(",", tariffCodes.Select((_, i) => "?"));
+                    string netFrag = isDouble ? "(n.net_type=? OR n.net_type=?)" : "n.net_type=?";
+                    string sql;
+                    OleDbCommand cmd = new OleDbCommand { Connection = conn };
+
+                    switch (rt)
+                    {
+                        case SolarReportType.Province:
+                            sql = $"SELECT COUNT(n.acc_nbr) FROM netmtcons n, areas a, netmeter m " +
+                                  $"WHERE n.bill_cycle=? AND m.acc_nbr=n.acc_nbr AND {netFrag} " +
+                                  $"AND a.area_code=n.area_cd AND a.prov_code=? AND m.schm IN ('1','2') AND tariff IN ({inClause})";
+                            cmd.CommandText = sql;
+                            cmd.Parameters.AddWithValue("?", billCycle);
+                            AddBulkNetParams(cmd, netType1, netType2, isDouble);
+                            cmd.Parameters.AddWithValue("?", typeCode);
+                            foreach (var code in tariffCodes) cmd.Parameters.AddWithValue("?", code);
+                            break;
+
+                        case SolarReportType.Region:
+                            sql = $"SELECT COUNT(n.acc_nbr) FROM netmtcons n, areas a, netmeter m " +
+                                  $"WHERE n.bill_cycle=? AND m.acc_nbr=n.acc_nbr AND {netFrag} " +
+                                  $"AND a.area_code=n.area_cd AND a.region=? AND m.schm IN ('1','2') AND tariff IN ({inClause})";
+                            cmd.CommandText = sql;
+                            cmd.Parameters.AddWithValue("?", billCycle);
+                            AddBulkNetParams(cmd, netType1, netType2, isDouble);
+                            cmd.Parameters.AddWithValue("?", typeCode);
+                            foreach (var code in tariffCodes) cmd.Parameters.AddWithValue("?", code);
+                            break;
+
+                        default:
+                            sql = $"SELECT COUNT(n.acc_nbr) FROM netmtcons n, netmeter m " +
+                                  $"WHERE n.bill_cycle=? AND m.acc_nbr=n.acc_nbr AND {netFrag} " +
+                                  $"AND m.schm IN ('1','2') AND tariff IN ({inClause})";
+                            cmd.CommandText = sql;
+                            cmd.Parameters.AddWithValue("?", billCycle);
+                            AddBulkNetParams(cmd, netType1, netType2, isDouble);
+                            foreach (var code in tariffCodes) cmd.Parameters.AddWithValue("?", code);
+                            break;
+                    }
+
+                    using (cmd)
+                    {
+                        var v = cmd.ExecuteScalar();
+                        return v == null || v == DBNull.Value ? 0 : Convert.ToInt32(v);
+                    }
+                }
+            }
+            catch (Exception ex) { logger.Error(ex, "GetBulkAccountCount"); return 0; }
+        }
+
+        // ================================================================
+        //  BULK — Sales at Tracked Rates
+        // ================================================================
+        private Dictionary<string, RateSalesRow> GetBulkSalesByTrackedRates(
+            SolarReportType rt, string typeCode, string billCycle, List<string> tariffCodes,
+            string netType1, string netType2, bool isDouble)
+        {
+            var result = new Dictionary<string, RateSalesRow>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                using (var conn = _dbConnection.GetConnection(true))
+                {
+                    conn.Open();
+
+                    string inClause = string.Join(",", tariffCodes.Select((_, i) => "?"));
+                    string netFrag = isDouble ? "(n.net_type=? OR n.net_type=?)" : "n.net_type=?";
+                    string sql;
+                    OleDbCommand cmd = new OleDbCommand { Connection = conn };
+
+                    switch (rt)
+                    {
+                        case SolarReportType.Province:
+                            sql = $"SELECT rate, COALESCE(SUM(kwh_sales),0), COALESCE(SUM(unitsale),0) " +
+                                  $"FROM netmtcons n, areas a, netmeter m " +
+                                  $"WHERE bill_cycle=? AND tariff IN ({inClause}) AND m.acc_nbr=n.acc_nbr " +
+                                  $"AND m.schm IN ('1','2') AND {netFrag} " +
+                                  $"AND rate IN {RateIn} " +
+                                  $"AND a.area_code=n.area_cd AND a.prov_code=? GROUP BY 1 ORDER BY 1";
+                            cmd.CommandText = sql;
+                            cmd.Parameters.AddWithValue("?", billCycle);
+                            foreach (var code in tariffCodes) cmd.Parameters.AddWithValue("?", code);
+                            AddBulkNetParams(cmd, netType1, netType2, isDouble);
+                            cmd.Parameters.AddWithValue("?", typeCode);
+                            break;
+
+                        case SolarReportType.Region:
+                            sql = $"SELECT rate, COALESCE(SUM(kwh_sales),0), COALESCE(SUM(unitsale),0) " +
+                                  $"FROM netmtcons n, areas a, netmeter m " +
+                                  $"WHERE bill_cycle=? AND tariff IN ({inClause}) AND m.acc_nbr=n.acc_nbr " +
+                                  $"AND m.schm IN ('1','2') AND {netFrag} " +
+                                  $"AND rate IN {RateIn} " +
+                                  $"AND a.area_code=n.area_cd AND a.region=? GROUP BY 1 ORDER BY 1";
+                            cmd.CommandText = sql;
+                            cmd.Parameters.AddWithValue("?", billCycle);
+                            foreach (var code in tariffCodes) cmd.Parameters.AddWithValue("?", code);
+                            AddBulkNetParams(cmd, netType1, netType2, isDouble);
+                            cmd.Parameters.AddWithValue("?", typeCode);
+                            break;
+
+                        default:
+                            sql = $"SELECT rate, COALESCE(SUM(kwh_sales),0), COALESCE(SUM(unitsale),0) " +
+                                  $"FROM netmtcons n, netmeter m " +
+                                  $"WHERE bill_cycle=? AND tariff IN ({inClause}) AND m.acc_nbr=n.acc_nbr " +
+                                  $"AND m.schm IN ('1','2') AND {netFrag} " +
+                                  $"AND rate IN {RateIn} GROUP BY 1 ORDER BY 1";
+                            cmd.CommandText = sql;
+                            cmd.Parameters.AddWithValue("?", billCycle);
+                            foreach (var code in tariffCodes) cmd.Parameters.AddWithValue("?", code);
+                            AddBulkNetParams(cmd, netType1, netType2, isDouble);
+                            break;
+                    }
+
+                    using (cmd)
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string rawRate = reader[0]?.ToString().Trim();
+                            string rate = NormaliseRate(rawRate);
+                            decimal kwh = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]);
+                            decimal unit = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]);
+                            result[rate] = new RateSalesRow { KwhSales = kwh, UnitSale = unit };
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "GetBulkSalesByTrackedRates EXCEPTION");
+            }
+            return result;
+        }
 
         // ================================================================
         //  UTILITY
