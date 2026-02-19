@@ -312,6 +312,7 @@
     <Compile Include="Controllers\PIV\ProvincePIVprovincialPOSController.cs" />
     <Compile Include="Controllers\PIV\ProvinceSetOffReportController.cs" />
     <Compile Include="Controllers\PIV\ProvinceWisePIVStampDutyController.cs" />
+    <Compile Include="Controllers\PUCSLController.cs" />
     <Compile Include="Controllers\PIV\ProvincialConsolidatedOutputVATController.cs" />
     <Compile Include="Controllers\PIV\RegionalPIVStampDutyController.cs" />
     <Compile Include="Controllers\PIV\RegionWiseVatReportController.cs" />
@@ -380,6 +381,8 @@
     <Compile Include="DAL\PIV\ProvincePIVprovincialRepository.cs" />
     <Compile Include="DAL\PIV\ProvinceSetOffReportRepository.cs" />
     <Compile Include="DAL\PIV\ProvinceWisePIVStampDutyRepository.cs" />
+    <Compile Include="DAL\PUCSLReports\PUCSLSolarConnection\FixedSolarDataDao.cs" />
+    <Compile Include="DAL\Shared\BillCycleFromAreaDao.cs" />
     <Compile Include="DAL\PIV\ProvincialConsolidatedOutputVATRepository.cs" />
     <Compile Include="DAL\PIV\RegionalPIVStampDutyRepository.cs" />
     <Compile Include="DAL\PIV\RegionWiseVatReportRepository.cs" />
@@ -485,6 +488,8 @@
     <Compile Include="Models\PIV\ProvincePIVprovincialPOSModel.cs" />
     <Compile Include="Models\PIV\ProvinceSetOffModel.cs" />
     <Compile Include="Models\PIV\ProvinceWisePIVStampDutyModel.cs" />
+    <Compile Include="Models\PUCSLReports\PUCSLSolarConnection\FixedSolarDataModel.cs" />
+    <Compile Include="Models\PUCSLReports\PUCSLSolarConnection\PUCSLReportRequest.cs" />
     <Compile Include="Models\PIV\ProvincialConsolidatedOutputVATModel.cs" />
     <Compile Include="Models\PIV\RegionalPIVStampDutyModel.cs" />
     <Compile Include="Models\PIV\RegionWiseVatReportModel.cs" />

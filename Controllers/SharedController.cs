@@ -24,6 +24,7 @@ namespace MISReports_Api.Controllers
         private readonly BillCycleRetailDao _billCycleRetailDao = new BillCycleRetailDao();
         private readonly AreasRepository _areasRepository = new AreasRepository();
         private readonly PVCapacityBillCycleDao _pVCapacityBillCycleDao = new PVCapacityBillCycleDao();
+        private readonly BillCycleFromAreaDao _billCycleFromAreaDao = new BillCycleFromAreaDao();
 
         [HttpGet]
         [Route("ordinary/areas")]
@@ -356,6 +357,31 @@ namespace MISReports_Api.Controllers
                 {
                     data = (object)null,
                     errorMessage = "Cannot get max bill cycle",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        [HttpGet]
+        [Route("areas/billcycle/max")] //areas/billcycle/max
+        public IHttpActionResult GetBillCycleFromArea()
+        {
+            try
+            {
+                var result = _billCycleFromAreaDao.GetLast24BillCycles();//From areas table in InformixConnection database
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = result,
+                    errorMessage = result.ErrorMessage
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get max bill cycle from areas",
                     errorDetails = ex.Message
                 }));
             }
