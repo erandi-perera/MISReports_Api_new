@@ -276,7 +276,6 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\SampleDirection.cs" />
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
-    <Compile Include="Controllers\AnalysisController.cs" />
     <Compile Include="Controllers\Cash Book\CashBookCCReportController.cs" />
     <Compile Include="Controllers\Cash Book\CashBookReportController.cs" />
     <Compile Include="Controllers\Cash Book\DocumentInquiryController.cs" />
@@ -322,7 +321,6 @@
     <Compile Include="Controllers\PIV\StampDutyDetailedController.cs" />
     <Compile Include="Controllers\PIV\TypewisePIVController.cs" />
     <Compile Include="Controllers\SharedController.cs" />
-    <Compile Include="Controllers\SolarAgeCategoryController.cs" />
     <Compile Include="Controllers\SolarDetails\SolarBillingController.cs" />
     <Compile Include="Controllers\SolarDetails\SolarPendingJobsController.cs" />
     <Compile Include="Controllers\WorkInProgController\CostCenterWorkInProgressController.cs" />
@@ -347,10 +345,6 @@
     <Compile Include="Controllers\WorkInProgController\ProjectAgeAnalysisController.cs" />
     <Compile Include="Controllers\WorkInProgController\ProjectCommitmentSummaryController.cs" />
     <Compile Include="Controllers\WorkInProgController\WorkInProgressCompletedCostCenterwiseController.cs" />
-    <Compile Include="DAL\Analysis\SolaAgeAnalysisDao.cs" />
-    <Compile Include="DAL\Analysis\SolaAgeAnalysisRepository.cs" />
-    <Compile Include="DAL\Analysis\SolarAgeCategoryDao.cs" />
-    <Compile Include="DAL\Analysis\SolarAgeCategoryRepository.cs" />
     <Compile Include="DAL\Cash Book\CashBookCCReportRepository.cs" />
     <Compile Include="DAL\Cash Book\CashBookReportRepository.cs" />
     <Compile Include="DAL\Cash Book\DocumentInquiryRepository.cs" />
@@ -451,8 +445,6 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\BillCycleHelper.cs" />
-    <Compile Include="Models\Analysis\SolaAgeeAnalysisModels.cs" />
-    <Compile Include="Models\Analysis\SolarAgeCategoryDetailModel.cs" />
     <Compile Include="Models\Cash Book\CashBookCCReportModel.cs" />
     <Compile Include="Models\Cash Book\CashBookReportModel.cs" />
     <Compile Include="Models\Cash Book\DocumentInquiryModel.cs" />
