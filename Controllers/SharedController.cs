@@ -24,6 +24,7 @@ namespace MISReports_Api.Controllers
         private readonly BillCycleRetailDao _billCycleRetailDao = new BillCycleRetailDao();
         private readonly AreasRepository _areasRepository = new AreasRepository();
         private readonly PVCapacityBillCycleDao _pVCapacityBillCycleDao = new PVCapacityBillCycleDao();
+        private readonly BillCycleFromAreaDao _billCycleFromAreaDao = new BillCycleFromAreaDao();
 
         [HttpGet]
         [Route("ordinary/areas")]
@@ -360,5 +361,7 @@ namespace MISReports_Api.Controllers
                 }));
             }
         }
+
+     
     }
 }
