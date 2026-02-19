@@ -2,7 +2,7 @@
 
 namespace MISReports_Api.Models.PhysicalVerification
 {
-    public class PHVShoratgeSurplusWHwiseModel
+    public class PHVShortageSurplusWHwiseModel
     {
         public string DocumentNo { get; set; }
         public string MaterialCode { get; set; }
@@ -19,5 +19,6 @@ namespace MISReports_Api.Models.PhysicalVerification
         public decimal? SurplusAmount { get; set; }
         public decimal? ShortageAmount { get; set; }
         public string CostCentreName { get; set; }
+        public DateTime? PhvDate { get; set; } 
     }
 }

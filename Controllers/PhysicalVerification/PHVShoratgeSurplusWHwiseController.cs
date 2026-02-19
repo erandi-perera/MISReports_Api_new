@@ -6,13 +6,13 @@ using System.Web.Http;
 namespace MISReports_Api.Controllers
 {
     [RoutePrefix("api/phv-shortage-surplus-whwise")]
-    public class PHVShoratgeSurplusWHwiseController : ApiController
+    public class PHVShortageSurplusWHwiseController : ApiController
     {
-        private readonly PHVShoratgeSurplusWHwiseRepository _repository;
+        private readonly PHVShortageSurplusWHwiseRepository _repository;
 
-        public PHVShoratgeSurplusWHwiseController()
+        public PHVShortageSurplusWHwiseController()
         {
-            _repository = new PHVShoratgeSurplusWHwiseRepository();
+            _repository = new PHVShortageSurplusWHwiseRepository();
         }
 
         [HttpGet]
@@ -30,16 +30,18 @@ namespace MISReports_Api.Controllers
             {
                 var data = await _repository.GetShortageSurplusWHwiseAsync(
                     deptId.Trim(),
+                    warehouseCode.Trim(),
                     repYear,
-                    repMonth,
-                    warehouseCode.Trim()
+                    repMonth
                 );
+
+                if (data.Count == 0)
+                    return Ok(new { message = "No data found." });
 
                 return Ok(data);
             }
             catch (Oracle.ManagedDataAccess.Client.OracleException ex)
             {
-                // Handle specific Oracle errors like TEMP tablespace
                 if (ex.Number == 1652)
                     return InternalServerError(new Exception("Database TEMP tablespace full. Consider optimizing the query or increasing TEMP tablespace."));
 

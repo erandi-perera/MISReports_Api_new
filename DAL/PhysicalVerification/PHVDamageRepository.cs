@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 namespace MISReports_Api.DAL.PhysicalVerification
 {
-    public class PHVObsoleteIdleRepository
+    public class PHVDamageRepository
     {
         private readonly string _connectionString =
             ConfigurationManager.ConnectionStrings["HQOracle"].ConnectionString;
 
-        public async Task<List<PHVObsoleteIdleModel>> GetObsoleteIdleAsync(
+        public async Task<List<PHVDamageModel>> GetDamageAsync(
             string deptId, string warehouseCode, int repYear, int repMonth)
         {
-            var result = new List<PHVObsoleteIdleModel>();
+            var result = new List<PHVDamageModel>();
 
             string sql = @"
                 SELECT
@@ -50,7 +50,7 @@ namespace MISReports_Api.DAL.PhysicalVerification
                     AND TRIM(T3.WRH_CD) = :wrh_cd
                     AND TO_CHAR(T3.PHV_DT,'YYYY') = :rep_year
                     AND TO_CHAR(T3.PHV_DT,'MM') = :rep_month
-                    AND TRIM(T1.GRADE_CD) IN ('OB','OBS')
+                    AND TRIM(T1.GRADE_CD) = 'DAM'
                 ORDER BY
                     T1.DOC_NO,
                     T1.MAT_CD";
@@ -71,25 +71,31 @@ namespace MISReports_Api.DAL.PhysicalVerification
                 {
                     while (await reader.ReadAsync())
                     {
-                        result.Add(new PHVObsoleteIdleModel
+                        result.Add(new PHVDamageModel
                         {
                             PhvDate = reader["PHV_DT"] != DBNull.Value
-                                        ? (DateTime?)reader.GetDateTime(reader.GetOrdinal("PHV_DT"))
-                                        : null,
+                                ? (DateTime?)reader.GetDateTime(reader.GetOrdinal("PHV_DT"))
+                                : null,
+
                             MaterialCode = reader["MAT_CD"]?.ToString(),
                             MaterialName = reader["MAT_NM"]?.ToString(),
                             UomCode = reader["UOM_CD"]?.ToString(),
                             GradeCode = reader["GRADE_CD"]?.ToString(),
+
                             UnitPrice = reader["UNIT_PRICE"] != DBNull.Value
-                                        ? Convert.ToDecimal(reader["UNIT_PRICE"])
-                                        : 0,
+                                ? Convert.ToDecimal(reader["UNIT_PRICE"])
+                                : 0,
+
                             QtyOnHand = reader["QTY_ON_HAND"] != DBNull.Value
-                                        ? Convert.ToDecimal(reader["QTY_ON_HAND"])
-                                        : 0,
+                                ? Convert.ToDecimal(reader["QTY_ON_HAND"])
+                                : 0,
+
                             DocumentNo = reader["DOC_NO"]?.ToString(),
+
                             StockBook = reader["STOCKBOOK"] != DBNull.Value
-                                        ? Convert.ToDecimal(reader["STOCKBOOK"])
-                                        : 0,
+                                ? Convert.ToDecimal(reader["STOCKBOOK"])
+                                : 0,
+
                             Reason = reader["REASON"]?.ToString()
                         });
                     }
