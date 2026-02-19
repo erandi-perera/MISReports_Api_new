@@ -362,6 +362,29 @@ namespace MISReports_Api.Controllers
             }
         }
 
-     
+        [HttpGet]
+        [Route("areas/billcycle/max")] //areas/billcycle/max
+        public IHttpActionResult GetBillCycleFromArea()
+        {
+            try
+            {
+                var result = _billCycleFromAreaDao.GetLast24BillCycles();//From areas table in InformixConnection database
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = result,
+                    errorMessage = result.ErrorMessage
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get max bill cycle from areas",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
     }
 }
