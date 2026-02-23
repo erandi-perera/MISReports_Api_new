@@ -244,7 +244,7 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
             var codes = new List<string>();
             try
             {
-                using (var conn = _dbConnection.GetConnection(true))
+                using (var conn = _dbConnection.GetConnection(false))
                 {
                     conn.Open();
                     const string sql =
@@ -321,11 +321,10 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                             break;
 
                         default: // EntireCEB
-                            string nc = netCond.Replace("n.net_type", "net_type");
                             sql = $"SELECT COUNT(*), COALESCE(SUM(unitsale),0), COALESCE(SUM(kwh_sales),0) " +
                                   $"FROM netmtcons n, areas a " +
-                                  $"WHERE {capacityCond} AND {nc} AND tariff_code IN ({inClause}) " +
-                                  $"AND calc_cycle=? AND schm='3' AND a.area_code=n.area_code";
+                                  $"WHERE {capacityCond} AND {netCond} AND n.tariff_code IN ({inClause}) " +
+                                  $"AND n.calc_cycle=? AND n.schm='3' AND a.area_code=n.area_code";
                             cmd.CommandText = sql;
                             foreach (var code in tariffCodes) cmd.Parameters.AddWithValue("?", code);
                             cmd.Parameters.AddWithValue("?", calcCycle);
