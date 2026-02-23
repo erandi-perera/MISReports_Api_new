@@ -25,6 +25,7 @@ namespace MISReports_Api.Controllers
     {
         private readonly FixedSolarDataDao _fixedSolarDataDao = new FixedSolarDataDao();
         private readonly VariableSolarDataDao _variableSolarDataDao = new VariableSolarDataDao();
+        private readonly TotalSolarCustomersDao _totalSolarCustomersDao = new TotalSolarCustomersDao();
 
         // ================================================================
         //  POST  pucsl/solarConnections
@@ -75,6 +76,9 @@ namespace MISReports_Api.Controllers
 
                 case PUCSLReportType.VariableSolarData:
                     return ProcessVariableSolarData(request);
+
+                case PUCSLReportType.TotalSolarCustomers:
+                    return ProcessTotalSolarCustomers(request);
 
                 default:
                     return Ok(JObject.FromObject(new
@@ -152,6 +156,42 @@ namespace MISReports_Api.Controllers
                 {
                     data = (object)null,
                     errorMessage = "Cannot retrieve Variable Solar Data report.",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        // ================================================================
+        //  PRIVATE — Total Solar Customers
+        // ================================================================
+        private IHttpActionResult ProcessTotalSolarCustomers(PUCSLRequest request)
+        {
+            try
+            {
+                if (!_totalSolarCustomersDao.TestConnection(out string connError))
+                {
+                    return Ok(JObject.FromObject(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    }));
+                }
+
+                var data = _totalSolarCustomersDao.GetTotalSolarCustomersReport(request);
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot retrieve Total Solar Customers report.",
                     errorDetails = ex.Message
                 }));
             }
