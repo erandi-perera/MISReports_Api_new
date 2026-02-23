@@ -15,7 +15,7 @@ namespace MISReports_Api.Controllers
     /// {
     ///   "reportCategory": "Province" | "Region" | "EntireCEB",
     ///   "typeCode":       "C"  (prov_code or region code; omit for EntireCEB),
-    ///   "billCycle":      "202501",
+    ///   "billCycle":      "440",
     ///   "reportType":     "FixedSolarData" | "VariableSolarData",
     ///   "solarType":      "NetAccounting" | "NetPlus" | "NetPlusPlus"
     /// }
@@ -24,13 +24,12 @@ namespace MISReports_Api.Controllers
     public class PUCSLController : ApiController
     {
         private readonly FixedSolarDataDao _fixedSolarDataDao = new FixedSolarDataDao();
-        // Future: private readonly VariableSolarDataDao _variableSolarDataDao = new VariableSolarDataDao();
+        private readonly VariableSolarDataDao _variableSolarDataDao = new VariableSolarDataDao();
 
         // ================================================================
-        //  POST  pucslapi/solar-data
+        //  POST  pucsl/solarConnections
         //
         //  Routes to the correct DAO based on request.ReportType.
-        //  VariableSolarData returns a placeholder until that DAO exists.
         // ================================================================
         [HttpPost]
         [Route("pucsl/solarConnections")]
@@ -75,12 +74,7 @@ namespace MISReports_Api.Controllers
                     return ProcessFixedSolarData(request);
 
                 case PUCSLReportType.VariableSolarData:
-                    // Placeholder until VariableSolarDataDao is implemented
-                    return Ok(JObject.FromObject(new
-                    {
-                        data = (object)null,
-                        errorMessage = "Variable Solar Data report is not yet implemented."
-                    }));
+                    return ProcessVariableSolarData(request);
 
                 default:
                     return Ok(JObject.FromObject(new
@@ -122,6 +116,42 @@ namespace MISReports_Api.Controllers
                 {
                     data = (object)null,
                     errorMessage = "Cannot retrieve Fixed Solar Data report.",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        // ================================================================
+        //  PRIVATE — Variable Solar Data
+        // ================================================================
+        private IHttpActionResult ProcessVariableSolarData(PUCSLRequest request)
+        {
+            try
+            {
+                if (!_variableSolarDataDao.TestConnection(out string connError))
+                {
+                    return Ok(JObject.FromObject(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    }));
+                }
+
+                var data = _variableSolarDataDao.GetVariableSolarDataReport(request);
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot retrieve Variable Solar Data report.",
                     errorDetails = ex.Message
                 }));
             }
