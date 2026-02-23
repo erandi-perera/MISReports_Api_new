@@ -202,7 +202,41 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
             return codes;
         }
 
-        
+        private List<string> GetBulkTariffCodes(string tariffCat)
+        {
+            var codes = new List<string>();
+            try
+            {
+                using (var conn = _dbConnection.GetConnection(true))
+                {
+                    conn.Open();
+                    const string sql =
+                        "SELECT c.tariff_code FROM cat_tariff_table c, tariff_category t " +
+                        "WHERE c.tariff_cat = t.tariff_cat AND t.tariff_cat = ? AND cus_cat = 'B'";
+                    using (var cmd = new OleDbCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("?", tariffCat);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var code = reader[0]?.ToString().Trim();
+                                if (!string.IsNullOrEmpty(code))
+                                {
+                                    codes.Add(code);
+                                }
+                            }
+                        }
+                    }
+                }
+                logger.Info($"GetBulkTariffCodes for {tariffCat}: {string.Join(", ", codes)}");
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"GetBulkTariffCodes EXCEPTION for cat={tariffCat}");
+            }
+            return codes;
+        }
 
         // ================================================================
         //  ORDINARY — Capacity Range Query
