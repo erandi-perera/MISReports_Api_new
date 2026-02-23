@@ -282,7 +282,78 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
         //  BULK — Capacity Range Query
         // ================================================================
 
-       
+        private CapacityRangeData GetBulkCapacityRange(SolarReportType rt, string typeCode,
+            string billCycle, List<string> tariffCodes, string netType, int minCap, int maxCap)
+        {
+            var data = new CapacityRangeData();
+            try
+            {
+                using (var conn = _dbConnection.GetConnection(true))
+                {
+                    conn.Open();
+
+                    string inClause = string.Join(",", tariffCodes.Select((_, i) => "?"));
+                    string capacityCond = BuildCapacityCondition(minCap, maxCap);
+                    string sql;
+                    OleDbCommand cmd = new OleDbCommand { Connection = conn };
+
+                    switch (rt)
+                    {
+                        case SolarReportType.Province:
+                            sql = $"SELECT COUNT(*), COALESCE(SUM(unitsale),0), COALESCE(SUM(kwh_sales),0) " +
+                                  $"FROM netmtcons n, netmeter m, areas a " +
+                                  $"WHERE {capacityCond} AND n.net_type=? AND n.bill_cycle=? " +
+                                  $"AND m.schm='3' AND m.acc_nbr=n.acc_nbr " +
+                                  $"AND a.area_code=n.area_cd AND a.prov_code=? AND tariff IN ({inClause})";
+                            cmd.CommandText = sql;
+                            cmd.Parameters.AddWithValue("?", netType);
+                            cmd.Parameters.AddWithValue("?", billCycle);
+                            cmd.Parameters.AddWithValue("?", typeCode);
+                            foreach (var code in tariffCodes) cmd.Parameters.AddWithValue("?", code);
+                            break;
+
+                        case SolarReportType.Region:
+                            sql = $"SELECT COUNT(*), COALESCE(SUM(unitsale),0), COALESCE(SUM(kwh_sales),0) " +
+                                  $"FROM netmtcons n, netmeter m, areas a " +
+                                  $"WHERE {capacityCond} AND n.net_type=? AND n.bill_cycle=? " +
+                                  $"AND m.schm='3' AND m.acc_nbr=n.acc_nbr " +
+                                  $"AND a.area_code=n.area_cd AND a.region=? AND tariff IN ({inClause})";
+                            cmd.CommandText = sql;
+                            cmd.Parameters.AddWithValue("?", netType);
+                            cmd.Parameters.AddWithValue("?", billCycle);
+                            cmd.Parameters.AddWithValue("?", typeCode);
+                            foreach (var code in tariffCodes) cmd.Parameters.AddWithValue("?", code);
+                            break;
+
+                        default: // EntireCEB
+                            sql = $"SELECT COUNT(*), COALESCE(SUM(unitsale),0), COALESCE(SUM(kwh_sales),0) " +
+                                  $"FROM netmtcons n, netmeter m, areas a " +
+                                  $"WHERE {capacityCond} AND n.net_type=? AND n.bill_cycle=? " +
+                                  $"AND m.schm='3' AND m.acc_nbr=n.acc_nbr " +
+                                  $"AND a.area_code=n.area_cd AND tariff IN ({inClause})";
+                            cmd.CommandText = sql;
+                            cmd.Parameters.AddWithValue("?", netType);
+                            cmd.Parameters.AddWithValue("?", billCycle);
+                            foreach (var code in tariffCodes) cmd.Parameters.AddWithValue("?", code);
+                            break;
+                    }
+
+                    using (cmd)
+                    using (var reader = cmd.ExecuteReader())
+                        if (reader.Read())
+                        {
+                            data.NoOfCustomers = reader[0] == DBNull.Value ? 0 : Convert.ToInt32(reader[0]);
+                            data.KwhUnits = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]);
+                            data.PaidAmount = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]);
+                        }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, $"GetBulkCapacityRange min={minCap} max={maxCap}");
+            }
+            return data;
+        }
 
         // ================================================================
         //  UTILITY
