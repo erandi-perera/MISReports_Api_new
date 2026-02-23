@@ -103,7 +103,44 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                         model.PaidAmountAbove500 = ordAbove500.PaidAmount;
                     }
 
-                    
+                    // ── BULK ──────────────────────────────────────────────────
+                    var bulkCodes = GetBulkTariffCodes(tc.TariffCat);
+                    if (bulkCodes != null && bulkCodes.Count > 0)
+                    {
+                        // Bulk database uses padded province codes
+                        string bulkTypeCode = request.TypeCode;
+                        if (reportType == SolarReportType.Province && request.TypeCode.Length == 1)
+                        {
+                            bulkTypeCode = request.TypeCode.PadLeft(2, '0');
+                        }
+
+                        // Query each capacity range for bulk
+                        var bulk0To20 = GetBulkCapacityRange(reportType, bulkTypeCode,
+                            request.BillCycle, bulkCodes, bulkNetType, 0, 20);
+                        var bulk20To100 = GetBulkCapacityRange(reportType, bulkTypeCode,
+                            request.BillCycle, bulkCodes, bulkNetType, 20, 100);
+                        var bulk100To500 = GetBulkCapacityRange(reportType, bulkTypeCode,
+                            request.BillCycle, bulkCodes, bulkNetType, 100, 500);
+                        var bulkAbove500 = GetBulkCapacityRange(reportType, bulkTypeCode,
+                            request.BillCycle, bulkCodes, bulkNetType, 500, 0);
+
+                        // Add bulk to ordinary totals
+                        model.NoOfCustomers0To20 += bulk0To20.NoOfCustomers;
+                        model.KwhUnits0To20 += bulk0To20.KwhUnits;
+                        model.PaidAmount0To20 += bulk0To20.PaidAmount;
+
+                        model.NoOfCustomers20To100 += bulk20To100.NoOfCustomers;
+                        model.KwhUnits20To100 += bulk20To100.KwhUnits;
+                        model.PaidAmount20To100 += bulk20To100.PaidAmount;
+
+                        model.NoOfCustomers100To500 += bulk100To500.NoOfCustomers;
+                        model.KwhUnits100To500 += bulk100To500.KwhUnits;
+                        model.PaidAmount100To500 += bulk100To500.PaidAmount;
+
+                        model.NoOfCustomersAbove500 += bulkAbove500.NoOfCustomers;
+                        model.KwhUnitsAbove500 += bulkAbove500.KwhUnits;
+                        model.PaidAmountAbove500 += bulkAbove500.PaidAmount;
+                    }
 
                     model.ErrorMessage = string.Empty;
                     results.Add(model);
