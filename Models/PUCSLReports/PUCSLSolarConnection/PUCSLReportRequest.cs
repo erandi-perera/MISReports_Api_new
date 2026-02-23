@@ -30,7 +30,8 @@
     public enum PUCSLReportType
     {
         FixedSolarData,
-        VariableSolarData
+        VariableSolarData,
+        TotalSolarCustomers
     }
 
     // ====================================================================

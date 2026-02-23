@@ -497,6 +497,7 @@
     <Compile Include="Models\PIV\RegionWiseVatReportModel.cs" />
     <Compile Include="Models\PIV\StampDutyDetailedModel.cs" />
     <Compile Include="Models\PIV\TypewisePIVModel.cs" />
+    <Compile Include="Models\PUCSLReports\PUCSLSolarConnection\TotalSolarCustomersModel.cs" />
     <Compile Include="Models\PUCSLReports\PUCSLSolarConnection\VariableSolarDataModel.cs" />
     <Compile Include="Models\SolarDetails\SolarBillingModel.cs" />
     <Compile Include="Models\SolarDetails\SolarPendingJobsModel.cs" />
