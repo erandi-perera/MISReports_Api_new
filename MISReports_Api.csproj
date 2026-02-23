@@ -382,6 +382,7 @@
     <Compile Include="DAL\PIV\ProvinceSetOffReportRepository.cs" />
     <Compile Include="DAL\PIV\ProvinceWisePIVStampDutyRepository.cs" />
     <Compile Include="DAL\PUCSLReports\PUCSLSolarConnection\FixedSolarDataDao.cs" />
+    <Compile Include="DAL\PUCSLReports\PUCSLSolarConnection\TotalSolarCustomersDao.cs" />
     <Compile Include="DAL\PUCSLReports\PUCSLSolarConnection\VariableSolarDataDao.cs" />
     <Compile Include="DAL\Shared\BillCycleFromAreaDao.cs" />
     <Compile Include="DAL\PIV\ProvincialConsolidatedOutputVATRepository.cs" />
