@@ -1,63 +1,64 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace MISReports_Api.Models.PUCSLReports.PUCSLSolarConnection
 {
     /// <summary>
     /// Model for Total No of Solar Customers Report (Report 3).
-    /// Tracks solar customer counts and units by net_type (scheme type).
-    /// 
-    /// Data is separated into:
-    /// - Ordinary: Regular billing customers
-    /// - Bulk: Bulk billing customers
-    /// 
-    /// Each has 4 net_type categories:
-    /// - Net Metering (net_type='1')
-    /// - Net Accounting (net_type='2' OR net_type='5')
-    /// - Net Plus (net_type='3')
-    /// - Net Plus Plus (net_type='4')
+    /// Returns separate Ordinary and Bulk sections.
     /// </summary>
-    public class TotalSolarCustomersModel
+    public class TotalSolarCustomersResponse
     {
-        // Tariff category identifier
+        public List<OrdinaryData> Ordinary { get; set; }
+        public List<BulkData> Bulk { get; set; }
+        public string ErrorMessage { get; set; }
+    }
+
+    /// <summary>
+    /// Ordinary customer data by tariff class.
+    /// </summary>
+    public class OrdinaryData
+    {
         public string TariffCategory { get; set; }
 
-        // ===== ORDINARY DATA =====
-
         // Net Metering (net_type='1')
-        public int OrdinaryNetMeteringCustomers { get; set; }
-        public decimal OrdinaryNetMeteringUnits { get; set; }
+        public int NetMeteringCustomers { get; set; }
+        public decimal NetMeteringUnits { get; set; }
 
         // Net Accounting (net_type='2' OR net_type='5')
-        public int OrdinaryNetAccountingCustomers { get; set; }
-        public decimal OrdinaryNetAccountingUnits { get; set; }
+        public int NetAccountingCustomers { get; set; }
+        public decimal NetAccountingUnits { get; set; }
 
         // Net Plus (net_type='3')
-        public int OrdinaryNetPlusCustomers { get; set; }
-        public decimal OrdinaryNetPlusUnits { get; set; }
+        public int NetPlusCustomers { get; set; }
+        public decimal NetPlusUnits { get; set; }
 
         // Net Plus Plus (net_type='4')
-        public int OrdinaryNetPlusPlusCustomers { get; set; }
-        public decimal OrdinaryNetPlusPlusUnits { get; set; }
+        public int NetPlusPlusCustomers { get; set; }
+        public decimal NetPlusPlusUnits { get; set; }
+    }
 
-        // ===== BULK DATA =====
+    /// <summary>
+    /// Bulk customer data by tariff code.
+    /// </summary>
+    public class BulkData
+    {
+        public string TariffCategory { get; set; }
 
         // Net Metering (net_type='1')
-        public int BulkNetMeteringCustomers { get; set; }
-        public decimal BulkNetMeteringUnits { get; set; }
+        public int NetMeteringCustomers { get; set; }
+        public decimal NetMeteringUnits { get; set; }
 
-        // Net Accounting (net_type='2' OR net_type='5')
-        public int BulkNetAccountingCustomers { get; set; }
-        public decimal BulkNetAccountingUnits { get; set; }
+        // Net Accounting (net_type='2')
+        public int NetAccountingCustomers { get; set; }
+        public decimal NetAccountingUnits { get; set; }
 
         // Net Plus (net_type='3')
-        public int BulkNetPlusCustomers { get; set; }
-        public decimal BulkNetPlusUnits { get; set; }
+        public int NetPlusCustomers { get; set; }
+        public decimal NetPlusUnits { get; set; }
 
         // Net Plus Plus (net_type='4')
-        public int BulkNetPlusPlusCustomers { get; set; }
-        public decimal BulkNetPlusPlusUnits { get; set; }
-
-        // Error handling
-        public string ErrorMessage { get; set; }
+        public int NetPlusPlusCustomers { get; set; }
+        public decimal NetPlusPlusUnits { get; set; }
     }
 }
