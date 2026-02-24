@@ -9,6 +9,7 @@
     /// </summary>
     public enum SolarNetType
     {
+        NetMetering,
         NetAccounting,
         NetPlus,
         NetPlusPlus
@@ -31,7 +32,8 @@
     {
         FixedSolarData,
         VariableSolarData,
-        TotalSolarCustomers
+        TotalSolarCustomers,
+        RawDataForSolar
     }
 
     // ====================================================================

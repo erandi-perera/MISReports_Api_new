@@ -26,6 +26,7 @@ namespace MISReports_Api.Controllers
         private readonly FixedSolarDataDao _fixedSolarDataDao = new FixedSolarDataDao();
         private readonly VariableSolarDataDao _variableSolarDataDao = new VariableSolarDataDao();
         private readonly TotalSolarCustomersDao _totalSolarCustomersDao = new TotalSolarCustomersDao();
+        private readonly RawDataForSolarDao _rawDataForSolarDao = new RawDataForSolarDao();
 
         // ================================================================
         //  POST  pucsl/solarConnections
@@ -79,6 +80,9 @@ namespace MISReports_Api.Controllers
 
                 case PUCSLReportType.TotalSolarCustomers:
                     return ProcessTotalSolarCustomers(request);
+
+                case PUCSLReportType.RawDataForSolar:
+                    return ProcessRawDataForSolar(request);
 
                 default:
                     return Ok(JObject.FromObject(new
@@ -192,6 +196,39 @@ namespace MISReports_Api.Controllers
                 {
                     data = (object)null,
                     errorMessage = "Cannot retrieve Total Solar Customers report.",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        private IHttpActionResult ProcessRawDataForSolar(PUCSLRequest request)
+        {
+            try
+            {
+                if (!_rawDataForSolarDao.TestConnection(out string connError))
+                {
+                    return Ok(JObject.FromObject(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    }));
+                }
+
+                var data = _rawDataForSolarDao.GetRawDataForSolarReport(request);
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Error processing Raw Data for Solar report.",
                     errorDetails = ex.Message
                 }));
             }
