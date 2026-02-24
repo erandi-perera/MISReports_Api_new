@@ -117,6 +117,29 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                 response.Ordinary.Add(gv1Ord);
 
                 // ═══════════════════════════════════════════════════════════
+                //  ORDINARY TOTALS
+                // ═══════════════════════════════════════════════════════════
+
+                var ordinaryTotal = new OrdinaryData
+                {
+                    TariffCategory = "Total"
+                };
+
+                foreach (var ord in response.Ordinary)
+                {
+                    ordinaryTotal.NetMeteringCustomers += ord.NetMeteringCustomers;
+                    ordinaryTotal.NetMeteringUnits += ord.NetMeteringUnits;
+                    ordinaryTotal.NetAccountingCustomers += ord.NetAccountingCustomers;
+                    ordinaryTotal.NetAccountingUnits += ord.NetAccountingUnits;
+                    ordinaryTotal.NetPlusCustomers += ord.NetPlusCustomers;
+                    ordinaryTotal.NetPlusUnits += ord.NetPlusUnits;
+                    ordinaryTotal.NetPlusPlusCustomers += ord.NetPlusPlusCustomers;
+                    ordinaryTotal.NetPlusPlusUnits += ord.NetPlusPlusUnits;
+                }
+
+                response.OrdinaryTotal = ordinaryTotal;
+
+                // ═══════════════════════════════════════════════════════════
                 //  BULK SECTION
                 // ═══════════════════════════════════════════════════════════
 
@@ -162,6 +185,29 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
 
                     response.Bulk.Add(bulkData);
                 }
+
+                // ═══════════════════════════════════════════════════════════
+                //  BULK TOTALS
+                // ═══════════════════════════════════════════════════════════
+
+                var bulkTotal = new BulkData
+                {
+                    TariffCategory = "Total"
+                };
+
+                foreach (var bulk in response.Bulk)
+                {
+                    bulkTotal.NetMeteringCustomers += bulk.NetMeteringCustomers;
+                    bulkTotal.NetMeteringUnits += bulk.NetMeteringUnits;
+                    bulkTotal.NetAccountingCustomers += bulk.NetAccountingCustomers;
+                    bulkTotal.NetAccountingUnits += bulk.NetAccountingUnits;
+                    bulkTotal.NetPlusCustomers += bulk.NetPlusCustomers;
+                    bulkTotal.NetPlusUnits += bulk.NetPlusUnits;
+                    bulkTotal.NetPlusPlusCustomers += bulk.NetPlusPlusCustomers;
+                    bulkTotal.NetPlusPlusUnits += bulk.NetPlusPlusUnits;
+                }
+
+                response.BulkTotal = bulkTotal;
 
                 response.ErrorMessage = string.Empty;
                 logger.Info($"=== END GetTotalSolarCustomersReport — Ordinary: {response.Ordinary.Count}, Bulk: {response.Bulk.Count} ===");

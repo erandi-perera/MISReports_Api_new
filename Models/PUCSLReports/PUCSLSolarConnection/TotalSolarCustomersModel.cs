@@ -10,7 +10,9 @@ namespace MISReports_Api.Models.PUCSLReports.PUCSLSolarConnection
     public class TotalSolarCustomersResponse
     {
         public List<OrdinaryData> Ordinary { get; set; }
+        public OrdinaryData OrdinaryTotal { get; set; }
         public List<BulkData> Bulk { get; set; }
+        public BulkData BulkTotal { get; set; }
         public string ErrorMessage { get; set; }
     }
 
