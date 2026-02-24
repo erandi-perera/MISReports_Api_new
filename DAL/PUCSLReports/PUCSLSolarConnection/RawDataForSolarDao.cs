@@ -252,77 +252,154 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                     string sql;
                     OleDbCommand cmd = new OleDbCommand { Connection = conn };
 
-                    // Ordinary only returns: units_in (export), units_out (import), bf_units, cf_units
-                    // No peak/off-peak breakdown
-                    switch (rt)
+                    // CRITICAL: bf_units and cf_units are ONLY for Net Metering (net_type='1')
+                    // For Net Accounting/Plus/PlusPlus, they should be excluded from SQL
+                    bool isNetMetering = (netTypeValue == "1");
+
+                    if (isNetMetering)
                     {
-                        case SolarReportType.Province:
-                            sql = $"SELECT tariff_class, COALESCE(SUM(units_in),0) AS exp, " +
-                                  $"COALESCE(SUM(units_out),0) AS imp, COALESCE(SUM(bf_units),0) AS bf, " +
-                                  $"COALESCE(SUM(cf_units),0) AS cf " +
-                                  $"FROM netmtcons n, tariff_code t, areas a " +
-                                  $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
-                                  $"AND n.tariff_code=t.tariff_code " +
-                                  $"AND a.area_code=n.area_code AND a.prov_code=? " +
-                                  $"AND tariff_class=? " +
-                                  $"GROUP BY 1 ORDER BY 1";
-                            cmd.CommandText = sql;
-                            cmd.Parameters.AddWithValue("?", calcCycle);
-                            cmd.Parameters.AddWithValue("?", typeCode);
-                            cmd.Parameters.AddWithValue("?", tariffClass);
-                            break;
-
-                        case SolarReportType.Region:
-                            sql = $"SELECT tariff_class, COALESCE(SUM(units_in),0) AS exp, " +
-                                  $"COALESCE(SUM(units_out),0) AS imp, COALESCE(SUM(bf_units),0) AS bf, " +
-                                  $"COALESCE(SUM(cf_units),0) AS cf " +
-                                  $"FROM netmtcons n, tariff_code t, areas a " +
-                                  $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
-                                  $"AND n.tariff_code=t.tariff_code " +
-                                  $"AND a.area_code=n.area_code AND a.region=? " +
-                                  $"AND tariff_class=? " +
-                                  $"GROUP BY 1 ORDER BY 1";
-                            cmd.CommandText = sql;
-                            cmd.Parameters.AddWithValue("?", calcCycle);
-                            cmd.Parameters.AddWithValue("?", typeCode);
-                            cmd.Parameters.AddWithValue("?", tariffClass);
-                            break;
-
-                        default: // EntireCEB
-                            sql = $"SELECT tariff_class, COALESCE(SUM(units_in),0) AS exp, " +
-                                  $"COALESCE(SUM(units_out),0) AS imp, COALESCE(SUM(bf_units),0) AS bf, " +
-                                  $"COALESCE(SUM(cf_units),0) AS cf " +
-                                  $"FROM netmtcons n, tariff_code t " +
-                                  $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
-                                  $"AND n.tariff_code=t.tariff_code " +
-                                  $"AND tariff_class=? " +
-                                  $"GROUP BY 1 ORDER BY 1";
-                            cmd.CommandText = sql;
-                            cmd.Parameters.AddWithValue("?", calcCycle);
-                            cmd.Parameters.AddWithValue("?", tariffClass);
-                            break;
-                    }
-
-                    using (cmd)
-                    using (var reader = cmd.ExecuteReader())
-                        if (reader.Read())
+                        // Net Metering: Include bf_units and cf_units
+                        switch (rt)
                         {
-                            data = new RawSolarData
-                            {
-                                Category = tariffClass,
-                                Year = year,
-                                Month = month,
-                                // Ordinary: Only Day values, Peak/Off-Peak are 0
-                                ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),
-                                ImportPeak = 0,
-                                ImportOffPeak = 0,
-                                ExportDay = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),
-                                ExportPeak = 0,
-                                ExportOffPeak = 0,
-                                BroughtForwardKwh = reader[3] == DBNull.Value ? 0 : Convert.ToDecimal(reader[3]),
-                                CarryForwardKwh = reader[4] == DBNull.Value ? 0 : Convert.ToDecimal(reader[4])
-                            };
+                            case SolarReportType.Province:
+                                sql = $"SELECT tariff_class, COALESCE(SUM(units_in),0) AS exp, " +
+                                      $"COALESCE(SUM(units_out),0) AS imp, COALESCE(SUM(bf_units),0) AS bf, " +
+                                      $"COALESCE(SUM(cf_units),0) AS cf " +
+                                      $"FROM netmtcons n, tariff_code t, areas a " +
+                                      $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
+                                      $"AND n.tariff_code=t.tariff_code " +
+                                      $"AND a.area_code=n.area_code AND a.prov_code=? " +
+                                      $"AND tariff_class=? " +
+                                      $"GROUP BY 1 ORDER BY 1";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", calcCycle);
+                                cmd.Parameters.AddWithValue("?", typeCode);
+                                cmd.Parameters.AddWithValue("?", tariffClass);
+                                break;
+
+                            case SolarReportType.Region:
+                                sql = $"SELECT tariff_class, COALESCE(SUM(units_in),0) AS exp, " +
+                                      $"COALESCE(SUM(units_out),0) AS imp, COALESCE(SUM(bf_units),0) AS bf, " +
+                                      $"COALESCE(SUM(cf_units),0) AS cf " +
+                                      $"FROM netmtcons n, tariff_code t, areas a " +
+                                      $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
+                                      $"AND n.tariff_code=t.tariff_code " +
+                                      $"AND a.area_code=n.area_code AND a.region=? " +
+                                      $"AND tariff_class=? " +
+                                      $"GROUP BY 1 ORDER BY 1";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", calcCycle);
+                                cmd.Parameters.AddWithValue("?", typeCode);
+                                cmd.Parameters.AddWithValue("?", tariffClass);
+                                break;
+
+                            default: // EntireCEB
+                                sql = $"SELECT tariff_class, COALESCE(SUM(units_in),0) AS exp, " +
+                                      $"COALESCE(SUM(units_out),0) AS imp, COALESCE(SUM(bf_units),0) AS bf, " +
+                                      $"COALESCE(SUM(cf_units),0) AS cf " +
+                                      $"FROM netmtcons n, tariff_code t " +
+                                      $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
+                                      $"AND n.tariff_code=t.tariff_code " +
+                                      $"AND tariff_class=? " +
+                                      $"GROUP BY 1 ORDER BY 1";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", calcCycle);
+                                cmd.Parameters.AddWithValue("?", tariffClass);
+                                break;
                         }
+
+                        using (cmd)
+                        using (var reader = cmd.ExecuteReader())
+                            if (reader.Read())
+                            {
+                                data = new RawSolarData
+                                {
+                                    Category = tariffClass,
+                                    Year = year,
+                                    Month = month,
+                                    ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),
+                                    ImportPeak = 0,
+                                    ImportOffPeak = 0,
+                                    ExportDay = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),
+                                    ExportPeak = 0,
+                                    ExportOffPeak = 0,
+                                    BroughtForwardKwh = reader[3] == DBNull.Value ? 0 : Convert.ToDecimal(reader[3]),
+                                    CarryForwardKwh = reader[4] == DBNull.Value ? 0 : Convert.ToDecimal(reader[4])
+                                };
+                            }
+                    }
+                    else
+                    {
+                        // Net Accounting/Plus/PlusPlus: NO bf_units and cf_units
+                        switch (rt)
+                        {
+                            case SolarReportType.Province:
+                                sql = $"SELECT tariff_class, COALESCE(SUM(units_in),0) AS exp, " +
+                                      $"COALESCE(SUM(units_out),0) AS imp " +
+                                      $"FROM netmtcons n, tariff_code t, areas a " +
+                                      $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
+                                      $"AND n.tariff_code=t.tariff_code " +
+                                      $"AND a.area_code=n.area_code AND a.prov_code=? " +
+                                      $"AND tariff_class=? " +
+                                      $"AND tariff_class NOT IN ('GV1UV','GV1SH') " +
+                                      $"GROUP BY 1 ORDER BY 1";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", calcCycle);
+                                cmd.Parameters.AddWithValue("?", typeCode);
+                                cmd.Parameters.AddWithValue("?", tariffClass);
+                                break;
+
+                            case SolarReportType.Region:
+                                sql = $"SELECT tariff_class, COALESCE(SUM(units_in),0) AS exp, " +
+                                      $"COALESCE(SUM(units_out),0) AS imp " +
+                                      $"FROM netmtcons n, tariff_code t, areas a " +
+                                      $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
+                                      $"AND n.tariff_code=t.tariff_code " +
+                                      $"AND a.area_code=n.area_code AND a.region=? " +
+                                      $"AND tariff_class=? " +
+                                      $"AND tariff_class NOT IN ('GV1UV','GV1SH') " +
+                                      $"GROUP BY 1 ORDER BY 1";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", calcCycle);
+                                cmd.Parameters.AddWithValue("?", typeCode);
+                                cmd.Parameters.AddWithValue("?", tariffClass);
+                                break;
+
+                            default: // EntireCEB
+                                sql = $"SELECT tariff_class, COALESCE(SUM(units_in),0) AS exp, " +
+                                      $"COALESCE(SUM(units_out),0) AS imp " +
+                                      $"FROM netmtcons n, tariff_code t " +
+                                      $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
+                                      $"AND n.tariff_code=t.tariff_code " +
+                                      $"AND tariff_class=? " +
+                                      $"AND tariff_class NOT IN ('GV1UV','GV1SH') " +
+                                      $"GROUP BY 1 ORDER BY 1";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", calcCycle);
+                                cmd.Parameters.AddWithValue("?", tariffClass);
+                                break;
+                        }
+
+                        using (cmd)
+                        using (var reader = cmd.ExecuteReader())
+                            if (reader.Read())
+                            {
+                                data = new RawSolarData
+                                {
+                                    Category = tariffClass,
+                                    Year = year,
+                                    Month = month,
+                                    ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),
+                                    ImportPeak = 0,
+                                    ImportOffPeak = 0,
+                                    ExportDay = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),
+                                    ExportPeak = 0,
+                                    ExportOffPeak = 0,
+                                    BroughtForwardKwh = 0,  // Always 0 for non-NetMetering
+                                    CarryForwardKwh = 0     // Always 0 for non-NetMetering
+                                };
+                            }
+                    }
                 }
             }
             catch (Exception ex)
@@ -350,68 +427,138 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                     string sql;
                     OleDbCommand cmd = new OleDbCommand { Connection = conn };
 
-                    switch (rt)
+                    // CRITICAL: bf_units and cf_units are ONLY for Net Metering (net_type='1')
+                    bool isNetMetering = (netTypeValue == "1");
+
+                    if (isNetMetering)
                     {
-                        case SolarReportType.Province:
-                            sql = $"SELECT 'GV1', COALESCE(SUM(units_in),0) AS exp, " +
-                                  $"COALESCE(SUM(units_out),0) AS imp, COALESCE(SUM(bf_units),0) AS bf, " +
-                                  $"COALESCE(SUM(cf_units),0) AS cf " +
-                                  $"FROM netmtcons a, tariff_code c, areas r " +
-                                  $"WHERE a.calc_cycle=? AND {netTypeCondition} " +
-                                  $"AND a.tariff_code=c.tariff_code " +
-                                  $"AND tariff_type IN ('GP-3','GP-4') " +
-                                  $"AND r.area_code=a.area_code AND r.prov_code=?";
-                            cmd.CommandText = sql;
-                            cmd.Parameters.AddWithValue("?", calcCycle);
-                            cmd.Parameters.AddWithValue("?", typeCode);
-                            break;
-
-                        case SolarReportType.Region:
-                            sql = $"SELECT 'GV1', COALESCE(SUM(units_in),0) AS exp, " +
-                                  $"COALESCE(SUM(units_out),0) AS imp, COALESCE(SUM(bf_units),0) AS bf, " +
-                                  $"COALESCE(SUM(cf_units),0) AS cf " +
-                                  $"FROM netmtcons a, tariff_code c, areas r " +
-                                  $"WHERE a.calc_cycle=? AND {netTypeCondition} " +
-                                  $"AND a.tariff_code=c.tariff_code " +
-                                  $"AND tariff_type IN ('GP-3','GP-4') " +
-                                  $"AND r.area_code=a.area_code AND r.region=?";
-                            cmd.CommandText = sql;
-                            cmd.Parameters.AddWithValue("?", calcCycle);
-                            cmd.Parameters.AddWithValue("?", typeCode);
-                            break;
-
-                        default: // EntireCEB
-                            sql = $"SELECT 'GV1', COALESCE(SUM(units_in),0) AS exp, " +
-                                  $"COALESCE(SUM(units_out),0) AS imp, COALESCE(SUM(bf_units),0) AS bf, " +
-                                  $"COALESCE(SUM(cf_units),0) AS cf " +
-                                  $"FROM netmtcons a, tariff_code c " +
-                                  $"WHERE a.calc_cycle=? AND {netTypeCondition} " +
-                                  $"AND a.tariff_code=c.tariff_code " +
-                                  $"AND tariff_type IN ('GP-3','GP-4')";
-                            cmd.CommandText = sql;
-                            cmd.Parameters.AddWithValue("?", calcCycle);
-                            break;
-                    }
-
-                    using (cmd)
-                    using (var reader = cmd.ExecuteReader())
-                        if (reader.Read())
+                        // Net Metering: Include bf_units and cf_units
+                        switch (rt)
                         {
-                            data = new RawSolarData
-                            {
-                                Category = "GV1",
-                                Year = year,
-                                Month = month,
-                                ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),
-                                ImportPeak = 0,
-                                ImportOffPeak = 0,
-                                ExportDay = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),
-                                ExportPeak = 0,
-                                ExportOffPeak = 0,
-                                BroughtForwardKwh = reader[3] == DBNull.Value ? 0 : Convert.ToDecimal(reader[3]),
-                                CarryForwardKwh = reader[4] == DBNull.Value ? 0 : Convert.ToDecimal(reader[4])
-                            };
+                            case SolarReportType.Province:
+                                sql = $"SELECT 'GV1', COALESCE(SUM(units_in),0) AS exp, " +
+                                      $"COALESCE(SUM(units_out),0) AS imp, COALESCE(SUM(bf_units),0) AS bf, " +
+                                      $"COALESCE(SUM(cf_units),0) AS cf " +
+                                      $"FROM netmtcons a, tariff_code c, areas r " +
+                                      $"WHERE a.calc_cycle=? AND {netTypeCondition} " +
+                                      $"AND a.tariff_code=c.tariff_code " +
+                                      $"AND tariff_type IN ('GP-3','GP-4') " +
+                                      $"AND r.area_code=a.area_code AND r.prov_code=?";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", calcCycle);
+                                cmd.Parameters.AddWithValue("?", typeCode);
+                                break;
+
+                            case SolarReportType.Region:
+                                sql = $"SELECT 'GV1', COALESCE(SUM(units_in),0) AS exp, " +
+                                      $"COALESCE(SUM(units_out),0) AS imp, COALESCE(SUM(bf_units),0) AS bf, " +
+                                      $"COALESCE(SUM(cf_units),0) AS cf " +
+                                      $"FROM netmtcons a, tariff_code c, areas r " +
+                                      $"WHERE a.calc_cycle=? AND {netTypeCondition} " +
+                                      $"AND a.tariff_code=c.tariff_code " +
+                                      $"AND tariff_type IN ('GP-3','GP-4') " +
+                                      $"AND r.area_code=a.area_code AND r.region=?";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", calcCycle);
+                                cmd.Parameters.AddWithValue("?", typeCode);
+                                break;
+
+                            default: // EntireCEB
+                                sql = $"SELECT 'GV1', COALESCE(SUM(units_in),0) AS exp, " +
+                                      $"COALESCE(SUM(units_out),0) AS imp, COALESCE(SUM(bf_units),0) AS bf, " +
+                                      $"COALESCE(SUM(cf_units),0) AS cf " +
+                                      $"FROM netmtcons a, tariff_code c " +
+                                      $"WHERE a.calc_cycle=? AND {netTypeCondition} " +
+                                      $"AND a.tariff_code=c.tariff_code " +
+                                      $"AND tariff_type IN ('GP-3','GP-4')";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", calcCycle);
+                                break;
                         }
+
+                        using (cmd)
+                        using (var reader = cmd.ExecuteReader())
+                            if (reader.Read())
+                            {
+                                data = new RawSolarData
+                                {
+                                    Category = "GV1",
+                                    Year = year,
+                                    Month = month,
+                                    ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),
+                                    ImportPeak = 0,
+                                    ImportOffPeak = 0,
+                                    ExportDay = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),
+                                    ExportPeak = 0,
+                                    ExportOffPeak = 0,
+                                    BroughtForwardKwh = reader[3] == DBNull.Value ? 0 : Convert.ToDecimal(reader[3]),
+                                    CarryForwardKwh = reader[4] == DBNull.Value ? 0 : Convert.ToDecimal(reader[4])
+                                };
+                            }
+                    }
+                    else
+                    {
+                        // Net Accounting/Plus/PlusPlus: NO bf_units and cf_units
+                        switch (rt)
+                        {
+                            case SolarReportType.Province:
+                                sql = $"SELECT 'GV1', COALESCE(SUM(units_in),0) AS exp, " +
+                                      $"COALESCE(SUM(units_out),0) AS imp " +
+                                      $"FROM netmtcons a, tariff_code c, areas r " +
+                                      $"WHERE a.calc_cycle=? AND {netTypeCondition} " +
+                                      $"AND a.tariff_code=c.tariff_code " +
+                                      $"AND tariff_type IN ('GP-3','GP-4') " +
+                                      $"AND r.area_code=a.area_code AND r.prov_code=?";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", calcCycle);
+                                cmd.Parameters.AddWithValue("?", typeCode);
+                                break;
+
+                            case SolarReportType.Region:
+                                sql = $"SELECT 'GV1', COALESCE(SUM(units_in),0) AS exp, " +
+                                      $"COALESCE(SUM(units_out),0) AS imp " +
+                                      $"FROM netmtcons a, tariff_code c, areas r " +
+                                      $"WHERE a.calc_cycle=? AND {netTypeCondition} " +
+                                      $"AND a.tariff_code=c.tariff_code " +
+                                      $"AND tariff_type IN ('GP-3','GP-4') " +
+                                      $"AND r.area_code=a.area_code AND r.region=?";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", calcCycle);
+                                cmd.Parameters.AddWithValue("?", typeCode);
+                                break;
+
+                            default: // EntireCEB
+                                sql = $"SELECT 'GV1', COALESCE(SUM(units_in),0) AS exp, " +
+                                      $"COALESCE(SUM(units_out),0) AS imp " +
+                                      $"FROM netmtcons a, tariff_code c " +
+                                      $"WHERE a.calc_cycle=? AND {netTypeCondition} " +
+                                      $"AND a.tariff_code=c.tariff_code " +
+                                      $"AND tariff_type IN ('GP-3','GP-4')";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", calcCycle);
+                                break;
+                        }
+
+                        using (cmd)
+                        using (var reader = cmd.ExecuteReader())
+                            if (reader.Read())
+                            {
+                                data = new RawSolarData
+                                {
+                                    Category = "GV1",
+                                    Year = year,
+                                    Month = month,
+                                    ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),
+                                    ImportPeak = 0,
+                                    ImportOffPeak = 0,
+                                    ExportDay = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),
+                                    ExportPeak = 0,
+                                    ExportOffPeak = 0,
+                                    BroughtForwardKwh = 0,  // Always 0 for non-NetMetering
+                                    CarryForwardKwh = 0     // Always 0 for non-NetMetering
+                                };
+                            }
+                    }
                 }
             }
             catch (Exception ex)
@@ -438,69 +585,12 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                     string sql;
                     OleDbCommand cmd = new OleDbCommand { Connection = conn };
 
-                    // Bulk returns: imp_kwd_units, imp_kwp_units, imp_kwo_units, exp_kwd_units, 
-                    // exp_kwp_units, exp_kwo_units, bf_units, cf_units
-                    // For Net Accounting/Plus/PlusPlus, need netmeter join
-                    bool needNetmeterJoin = (netTypeValue == "2" || netTypeValue == "3" || netTypeValue == "4");
+                    // CRITICAL: bf_units and cf_units are ONLY for Net Metering (net_type='1')
+                    bool isNetMetering = (netTypeValue == "1");
 
-                    if (needNetmeterJoin)
+                    if (isNetMetering)
                     {
-                        // Net Accounting, Net Plus, Net Plus Plus need netmeter join
-                        switch (rt)
-                        {
-                            case SolarReportType.Province:
-                                sql = "SELECT n.tariff, " +
-                                      "COALESCE(SUM(n.imp_kwd_units),0), COALESCE(SUM(n.imp_kwp_units),0), " +
-                                      "COALESCE(SUM(n.imp_kwo_units),0), COALESCE(SUM(n.exp_kwd_units),0), " +
-                                      "COALESCE(SUM(n.exp_kwp_units),0), COALESCE(SUM(n.exp_kwo_units),0), " +
-                                      "COALESCE(SUM(n.bf_units),0), COALESCE(SUM(n.cf_units),0) " +
-                                      "FROM netmtcons n, areas a, netmeter m " +
-                                      "WHERE n.net_type=? AND bill_cycle=? " +
-                                      "AND m.acc_nbr=n.acc_nbr AND rate NOT IN ('0') " +
-                                      "AND a.area_code=n.area_cd AND a.prov_code=? " +
-                                      "GROUP BY n.tariff ORDER BY n.tariff ASC";
-                                cmd.CommandText = sql;
-                                cmd.Parameters.AddWithValue("?", netTypeValue);
-                                cmd.Parameters.AddWithValue("?", billCycle);
-                                cmd.Parameters.AddWithValue("?", typeCode);
-                                break;
-
-                            case SolarReportType.Region:
-                                sql = "SELECT n.tariff, " +
-                                      "COALESCE(SUM(n.imp_kwd_units),0), COALESCE(SUM(n.imp_kwp_units),0), " +
-                                      "COALESCE(SUM(n.imp_kwo_units),0), COALESCE(SUM(n.exp_kwd_units),0), " +
-                                      "COALESCE(SUM(n.exp_kwp_units),0), COALESCE(SUM(n.exp_kwo_units),0), " +
-                                      "COALESCE(SUM(n.bf_units),0), COALESCE(SUM(n.cf_units),0) " +
-                                      "FROM netmtcons n, areas a, netmeter m " +
-                                      "WHERE n.net_type=? AND bill_cycle=? " +
-                                      "AND m.acc_nbr=n.acc_nbr AND rate NOT IN ('0') " +
-                                      "AND a.area_code=n.area_cd AND a.region=? " +
-                                      "GROUP BY n.tariff ORDER BY n.tariff ASC";
-                                cmd.CommandText = sql;
-                                cmd.Parameters.AddWithValue("?", netTypeValue);
-                                cmd.Parameters.AddWithValue("?", billCycle);
-                                cmd.Parameters.AddWithValue("?", typeCode);
-                                break;
-
-                            default: // EntireCEB
-                                sql = "SELECT n.tariff, " +
-                                      "COALESCE(SUM(n.imp_kwd_units),0), COALESCE(SUM(n.imp_kwp_units),0), " +
-                                      "COALESCE(SUM(n.imp_kwo_units),0), COALESCE(SUM(n.exp_kwd_units),0), " +
-                                      "COALESCE(SUM(n.exp_kwp_units),0), COALESCE(SUM(n.exp_kwo_units),0), " +
-                                      "COALESCE(SUM(n.bf_units),0), COALESCE(SUM(n.cf_units),0) " +
-                                      "FROM netmtcons n, netmeter m " +
-                                      "WHERE n.net_type=? AND bill_cycle=? " +
-                                      "AND m.acc_nbr=n.acc_nbr AND rate NOT IN ('0') " +
-                                      "GROUP BY n.tariff ORDER BY n.tariff ASC";
-                                cmd.CommandText = sql;
-                                cmd.Parameters.AddWithValue("?", netTypeValue);
-                                cmd.Parameters.AddWithValue("?", billCycle);
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        // Net Metering - no netmeter join
+                        // Net Metering: Include bf_units and cf_units (8 columns total)
                         switch (rt)
                         {
                             case SolarReportType.Province:
@@ -546,28 +636,96 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                                 cmd.Parameters.AddWithValue("?", billCycle);
                                 break;
                         }
-                    }
 
-                    using (cmd)
-                    using (var reader = cmd.ExecuteReader())
-                        while (reader.Read())
-                        {
-                            dataList.Add(new RawSolarData
+                        using (cmd)
+                        using (var reader = cmd.ExecuteReader())
+                            while (reader.Read())
                             {
-                                Category = reader[0]?.ToString().Trim() ?? "",
-                                Year = year,
-                                Month = month,
-                                // Bulk has Peak/Off-Peak breakdown
-                                ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),
-                                ImportPeak = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),
-                                ImportOffPeak = reader[3] == DBNull.Value ? 0 : Convert.ToDecimal(reader[3]),
-                                ExportDay = reader[4] == DBNull.Value ? 0 : Convert.ToDecimal(reader[4]),
-                                ExportPeak = reader[5] == DBNull.Value ? 0 : Convert.ToDecimal(reader[5]),
-                                ExportOffPeak = reader[6] == DBNull.Value ? 0 : Convert.ToDecimal(reader[6]),
-                                BroughtForwardKwh = reader[7] == DBNull.Value ? 0 : Convert.ToDecimal(reader[7]),
-                                CarryForwardKwh = reader[8] == DBNull.Value ? 0 : Convert.ToDecimal(reader[8])
-                            });
+                                dataList.Add(new RawSolarData
+                                {
+                                    Category = reader[0]?.ToString().Trim() ?? "",
+                                    Year = year,
+                                    Month = month,
+                                    ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),
+                                    ImportPeak = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),
+                                    ImportOffPeak = reader[3] == DBNull.Value ? 0 : Convert.ToDecimal(reader[3]),
+                                    ExportDay = reader[4] == DBNull.Value ? 0 : Convert.ToDecimal(reader[4]),
+                                    ExportPeak = reader[5] == DBNull.Value ? 0 : Convert.ToDecimal(reader[5]),
+                                    ExportOffPeak = reader[6] == DBNull.Value ? 0 : Convert.ToDecimal(reader[6]),
+                                    BroughtForwardKwh = reader[7] == DBNull.Value ? 0 : Convert.ToDecimal(reader[7]),
+                                    CarryForwardKwh = reader[8] == DBNull.Value ? 0 : Convert.ToDecimal(reader[8])
+                                });
+                            }
+                    }
+                    else
+                    {
+                        // Net Accounting/Plus/PlusPlus: NO bf_units and cf_units (6 columns only)
+                        switch (rt)
+                        {
+                            case SolarReportType.Province:
+                                sql = "SELECT tariff, " +
+                                      "COALESCE(SUM(imp_kwd_units),0), COALESCE(SUM(imp_kwp_units),0), " +
+                                      "COALESCE(SUM(imp_kwo_units),0), COALESCE(SUM(exp_kwd_units),0), " +
+                                      "COALESCE(SUM(exp_kwp_units),0), COALESCE(SUM(exp_kwo_units),0) " +
+                                      "FROM netmtcons n, areas a " +
+                                      "WHERE bill_cycle=? AND net_type=? " +
+                                      "AND a.area_code=n.area_cd AND a.prov_code=? " +
+                                      "GROUP BY tariff ORDER BY tariff ASC";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", billCycle);
+                                cmd.Parameters.AddWithValue("?", netTypeValue);
+                                cmd.Parameters.AddWithValue("?", typeCode);
+                                break;
+
+                            case SolarReportType.Region:
+                                sql = "SELECT tariff, " +
+                                      "COALESCE(SUM(imp_kwd_units),0), COALESCE(SUM(imp_kwp_units),0), " +
+                                      "COALESCE(SUM(imp_kwo_units),0), COALESCE(SUM(exp_kwd_units),0), " +
+                                      "COALESCE(SUM(exp_kwp_units),0), COALESCE(SUM(exp_kwo_units),0) " +
+                                      "FROM netmtcons n, areas a " +
+                                      "WHERE bill_cycle=? AND net_type=? " +
+                                      "AND a.area_code=n.area_cd AND a.region=? " +
+                                      "GROUP BY tariff ORDER BY tariff ASC";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", billCycle);
+                                cmd.Parameters.AddWithValue("?", netTypeValue);
+                                cmd.Parameters.AddWithValue("?", typeCode);
+                                break;
+
+                            default: // EntireCEB
+                                sql = "SELECT tariff, " +
+                                      "COALESCE(SUM(imp_kwd_units),0), COALESCE(SUM(imp_kwp_units),0), " +
+                                      "COALESCE(SUM(imp_kwo_units),0), COALESCE(SUM(exp_kwd_units),0), " +
+                                      "COALESCE(SUM(exp_kwp_units),0), COALESCE(SUM(exp_kwo_units),0) " +
+                                      "FROM netmtcons " +
+                                      "WHERE bill_cycle=? AND net_type=? " +
+                                      "GROUP BY tariff ORDER BY tariff ASC";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", billCycle);
+                                cmd.Parameters.AddWithValue("?", netTypeValue);
+                                break;
                         }
+
+                        using (cmd)
+                        using (var reader = cmd.ExecuteReader())
+                            while (reader.Read())
+                            {
+                                dataList.Add(new RawSolarData
+                                {
+                                    Category = reader[0]?.ToString().Trim() ?? "",
+                                    Year = year,
+                                    Month = month,
+                                    ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),
+                                    ImportPeak = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),
+                                    ImportOffPeak = reader[3] == DBNull.Value ? 0 : Convert.ToDecimal(reader[3]),
+                                    ExportDay = reader[4] == DBNull.Value ? 0 : Convert.ToDecimal(reader[4]),
+                                    ExportPeak = reader[5] == DBNull.Value ? 0 : Convert.ToDecimal(reader[5]),
+                                    ExportOffPeak = reader[6] == DBNull.Value ? 0 : Convert.ToDecimal(reader[6]),
+                                    BroughtForwardKwh = 0,  // Always 0 for non-NetMetering
+                                    CarryForwardKwh = 0     // Always 0 for non-NetMetering
+                                });
+                            }
+                    }
                 }
                 logger.Info($"GetBulkData: Found {dataList.Count} bulk tariffs");
             }
