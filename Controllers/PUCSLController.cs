@@ -118,6 +118,10 @@ namespace MISReports_Api.Controllers
                     errorMessage = (string)null
                 }));
             }
+            catch (ArgumentException argEx)
+            {
+                return BadRequest(argEx.Message); 
+            }
             catch (Exception ex)
             {
                 return Ok(JObject.FromObject(new
@@ -153,6 +157,10 @@ namespace MISReports_Api.Controllers
                     data = data,
                     errorMessage = (string)null
                 }));
+            }
+            catch (ArgumentException argEx)
+            {
+                return BadRequest(argEx.Message); // Returns 400 with clean message
             }
             catch (Exception ex)
             {

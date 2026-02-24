@@ -52,16 +52,11 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                 logger.Info($"Category={request.ReportCategory}, TypeCode={request.TypeCode}, " +
                             $"BillCycle={request.BillCycle}, SolarType={request.SolarType}");
 
+                // Throw exception for invalid solar type
                 if (request.SolarType == SolarNetType.NetMetering)
                 {
                     logger.Warn("NetMetering is not supported for Fixed Solar Data report");
-                    return new List<FixedSolarDataModel>
-                    {
-                        new FixedSolarDataModel
-                        {
-                            ErrorMessage = "NetMetering is not supported for Fixed Solar Data report. Please use NetAccounting, NetPlus, or NetPlusPlus."
-                        }
-                    };
+                    throw new ArgumentException("NetMetering is not supported for Fixed Solar Data report. Please use NetAccounting, NetPlus, or NetPlusPlus.");
                 }
 
                 SolarReportType reportType = MapReportType(request.ReportCategory);
