@@ -532,7 +532,7 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                                 break;
                         }
                     }
-                    else
+                    else if (netType == "2" || netType == "3")
                     {
                         // Net Accounting, Net Plus, Net Plus Plus need netmeter join and rate filter
                         switch (rt)
@@ -570,6 +570,52 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                                       $"FROM netmtcons n, netmeter m " +
                                       $"WHERE n.net_type=? AND bill_cycle=? " +
                                       $"AND m.acc_nbr=n.acc_nbr AND rate NOT IN ('0') " +
+                                      $"AND n.tariff IN ({inClause})";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", netType);
+                                cmd.Parameters.AddWithValue("?", billCycle);
+                                foreach (var t in tariffs) cmd.Parameters.AddWithValue("?", t);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        // Net Plus Plus (4) needs netmeter join but NO rate filter
+                        switch (rt)
+                        {
+                            case SolarReportType.Province:
+                                sql = $"SELECT COUNT(n.acc_nbr), COALESCE(SUM(n.exp_kwd_units),0) " +
+                                      $"FROM netmtcons n, areas a, netmeter m " +
+                                      $"WHERE n.net_type=? AND bill_cycle=? " +
+                                      $"AND m.acc_nbr=n.acc_nbr " +
+                                      $"AND a.area_code=n.area_cd AND a.prov_code=? " +
+                                      $"AND n.tariff IN ({inClause})";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", netType);
+                                cmd.Parameters.AddWithValue("?", billCycle);
+                                cmd.Parameters.AddWithValue("?", typeCode);
+                                foreach (var t in tariffs) cmd.Parameters.AddWithValue("?", t);
+                                break;
+
+                            case SolarReportType.Region:
+                                sql = $"SELECT COUNT(n.acc_nbr), COALESCE(SUM(n.exp_kwd_units),0) " +
+                                      $"FROM netmtcons n, areas a, netmeter m " +
+                                      $"WHERE n.net_type=? AND bill_cycle=? " +
+                                      $"AND m.acc_nbr=n.acc_nbr " +
+                                      $"AND a.area_code=n.area_cd AND a.region=? " +
+                                      $"AND n.tariff IN ({inClause})";
+                                cmd.CommandText = sql;
+                                cmd.Parameters.AddWithValue("?", netType);
+                                cmd.Parameters.AddWithValue("?", billCycle);
+                                cmd.Parameters.AddWithValue("?", typeCode);
+                                foreach (var t in tariffs) cmd.Parameters.AddWithValue("?", t);
+                                break;
+
+                            default: // EntireCEB
+                                sql = $"SELECT COUNT(n.acc_nbr), COALESCE(SUM(n.exp_kwd_units),0) " +
+                                      $"FROM netmtcons n, netmeter m " +
+                                      $"WHERE n.net_type=? AND bill_cycle=? " +
+                                      $"AND m.acc_nbr=n.acc_nbr " +
                                       $"AND n.tariff IN ({inClause})";
                                 cmd.CommandText = sql;
                                 cmd.Parameters.AddWithValue("?", netType);

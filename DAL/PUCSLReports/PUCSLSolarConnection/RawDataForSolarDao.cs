@@ -63,31 +63,17 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                 //  ORDINARY SECTION
                 // ═══════════════════════════════════════════════════════════
 
-                var tariffClasses = GetTariffClasses(request.BillCycle, netTypeCondition, netTypeValue, isNetAccounting);
-                if (tariffClasses.Count == 0)
-                {
-                    logger.Warn("No tariff classes found.");
-                }
+                // All net types: Get all tariff classes in ONE query (no loop needed)
+                var allOrdinaryData = GetAllOrdinaryData(reportType, request.TypeCode,
+                    request.BillCycle, year, month, netTypeCondition, netTypeValue, isNetAccounting);
+                response.Ordinary.AddRange(allOrdinaryData);
 
-                foreach (var tariffClass in tariffClasses)
+                // GV1 for ALL net types (GP-3 and GP-4)
+                var gv1Ord = GetOrdinaryGV1Data(reportType, request.TypeCode,
+                    request.BillCycle, year, month, netTypeCondition, netTypeValue, isNetAccounting);
+                if (gv1Ord != null)
                 {
-                    var ordData = GetOrdinaryData(reportType, request.TypeCode,
-                        request.BillCycle, tariffClass, year, month, netTypeCondition, netTypeValue, isNetAccounting);
-                    if (ordData != null)
-                    {
-                        response.Ordinary.Add(ordData);
-                    }
-                }
-
-                // Special GV1 handling for Ordinary (only for Net Metering and Net Accounting)
-                if (request.SolarType == SolarNetType.NetMetering || request.SolarType == SolarNetType.NetAccounting)
-                {
-                    var gv1Ord = GetOrdinaryGV1Data(reportType, request.TypeCode,
-                        request.BillCycle, year, month, netTypeCondition, netTypeValue, isNetAccounting);
-                    if (gv1Ord != null)
-                    {
-                        response.Ordinary.Add(gv1Ord);
-                    }
+                    response.Ordinary.Add(gv1Ord);
                 }
 
                 // Calculate Ordinary Total
@@ -193,56 +179,23 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
         //  TARIFF CLASSES
         // ================================================================
 
-        private List<string> GetTariffClasses(string calcCycle, string netTypeCondition,
+        // ================================================================
+        //  ORDINARY — Get All Classes (Unified for All Net Types)
+        // ================================================================
+
+        /// <summary>
+        /// Gets all ordinary tariff classes in a single query.
+        /// Handles both Net Metering (with bf/cf) and Net Accounting/Plus/PlusPlus (without bf/cf).
+        /// </summary>
+        /// <summary>
+        /// Gets all ordinary tariff classes in a single query.
+        /// Handles both Net Metering (with bf/cf) and Net Accounting/Plus/PlusPlus (without bf/cf).
+        /// </summary>
+        private List<RawSolarData> GetAllOrdinaryData(SolarReportType rt, string typeCode,
+            string calcCycle, string year, string month, string netTypeCondition,
             string netTypeValue, bool isNetAccounting)
         {
-            var classes = new List<string>();
-            try
-            {
-                using (var conn = _dbConnection.GetConnection(false))
-                {
-                    conn.Open();
-                    string sql =
-                        $"SELECT c.tariff_class FROM netmtcons a, tariff_code c " +
-                        $"WHERE a.calc_cycle=? AND {netTypeCondition} " +
-                        $"AND a.tariff_code=c.tariff_code " +
-                        $"AND tariff_class NOT IN ('GV1UV','GV1SH') " +
-                        $"GROUP BY c.tariff_class ORDER BY c.tariff_class";
-
-                    using (var cmd = new OleDbCommand(sql, conn))
-                    {
-                        cmd.Parameters.AddWithValue("?", calcCycle);
-                        using (var reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                var tariffClass = reader[0]?.ToString().Trim();
-                                if (!string.IsNullOrEmpty(tariffClass))
-                                {
-                                    classes.Add(tariffClass);
-                                }
-                            }
-                        }
-                    }
-                }
-                logger.Info($"Found {classes.Count} tariff classes for {netTypeCondition}");
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "GetTariffClasses EXCEPTION");
-            }
-            return classes;
-        }
-
-        // ================================================================
-        //  ORDINARY — By Tariff Class
-        // ================================================================
-
-        private RawSolarData GetOrdinaryData(SolarReportType rt, string typeCode,
-            string calcCycle, string tariffClass, string year, string month,
-            string netTypeCondition, string netTypeValue, bool isNetAccounting)
-        {
-            RawSolarData data = null;
+            var dataList = new List<RawSolarData>();
             try
             {
                 using (var conn = _dbConnection.GetConnection(false))
@@ -252,13 +205,12 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                     string sql;
                     OleDbCommand cmd = new OleDbCommand { Connection = conn };
 
-                    // CRITICAL: bf_units and cf_units are ONLY for Net Metering (net_type='1')
-                    // For Net Accounting/Plus/PlusPlus, they should be excluded from SQL
+                    // Determine if this is Net Metering (includes bf/cf columns)
                     bool isNetMetering = (netTypeValue == "1");
 
                     if (isNetMetering)
                     {
-                        // Net Metering: Include bf_units and cf_units
+                        // Net Metering: Include bf_units and cf_units (4 value columns)
                         switch (rt)
                         {
                             case SolarReportType.Province:
@@ -269,12 +221,11 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                                       $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
                                       $"AND n.tariff_code=t.tariff_code " +
                                       $"AND a.area_code=n.area_code AND a.prov_code=? " +
-                                      $"AND tariff_class=? " +
+                                      $"AND tariff_class NOT IN ('GV1UV','GV1SH') " +
                                       $"GROUP BY 1 ORDER BY 1";
                                 cmd.CommandText = sql;
                                 cmd.Parameters.AddWithValue("?", calcCycle);
                                 cmd.Parameters.AddWithValue("?", typeCode);
-                                cmd.Parameters.AddWithValue("?", tariffClass);
                                 break;
 
                             case SolarReportType.Region:
@@ -285,12 +236,11 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                                       $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
                                       $"AND n.tariff_code=t.tariff_code " +
                                       $"AND a.area_code=n.area_code AND a.region=? " +
-                                      $"AND tariff_class=? " +
+                                      $"AND tariff_class NOT IN ('GV1UV','GV1SH') " +
                                       $"GROUP BY 1 ORDER BY 1";
                                 cmd.CommandText = sql;
                                 cmd.Parameters.AddWithValue("?", calcCycle);
                                 cmd.Parameters.AddWithValue("?", typeCode);
-                                cmd.Parameters.AddWithValue("?", tariffClass);
                                 break;
 
                             default: // EntireCEB
@@ -300,37 +250,36 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                                       $"FROM netmtcons n, tariff_code t " +
                                       $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
                                       $"AND n.tariff_code=t.tariff_code " +
-                                      $"AND tariff_class=? " +
+                                      $"AND tariff_class NOT IN ('GV1UV','GV1SH') " +
                                       $"GROUP BY 1 ORDER BY 1";
                                 cmd.CommandText = sql;
                                 cmd.Parameters.AddWithValue("?", calcCycle);
-                                cmd.Parameters.AddWithValue("?", tariffClass);
                                 break;
                         }
 
                         using (cmd)
                         using (var reader = cmd.ExecuteReader())
-                            if (reader.Read())
+                            while (reader.Read())
                             {
-                                data = new RawSolarData
+                                dataList.Add(new RawSolarData
                                 {
-                                    Category = tariffClass,
+                                    Category = reader[0]?.ToString().Trim() ?? "",
                                     Year = year,
                                     Month = month,
-                                    ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),
+                                    ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),  // units_in = exp
                                     ImportPeak = 0,
                                     ImportOffPeak = 0,
-                                    ExportDay = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),
+                                    ExportDay = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),  // units_out = imp
                                     ExportPeak = 0,
                                     ExportOffPeak = 0,
-                                    BroughtForwardKwh = reader[3] == DBNull.Value ? 0 : Convert.ToDecimal(reader[3]),
-                                    CarryForwardKwh = reader[4] == DBNull.Value ? 0 : Convert.ToDecimal(reader[4])
-                                };
+                                    BroughtForwardKwh = reader[3] == DBNull.Value ? 0 : Convert.ToDecimal(reader[3]),  // bf_units
+                                    CarryForwardKwh = reader[4] == DBNull.Value ? 0 : Convert.ToDecimal(reader[4])     // cf_units
+                                });
                             }
                     }
                     else
                     {
-                        // Net Accounting/Plus/PlusPlus: NO bf_units and cf_units
+                        // Net Accounting/Plus/PlusPlus: NO bf_units, cf_units (2 value columns only)
                         switch (rt)
                         {
                             case SolarReportType.Province:
@@ -340,13 +289,11 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                                       $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
                                       $"AND n.tariff_code=t.tariff_code " +
                                       $"AND a.area_code=n.area_code AND a.prov_code=? " +
-                                      $"AND tariff_class=? " +
                                       $"AND tariff_class NOT IN ('GV1UV','GV1SH') " +
                                       $"GROUP BY 1 ORDER BY 1";
                                 cmd.CommandText = sql;
                                 cmd.Parameters.AddWithValue("?", calcCycle);
                                 cmd.Parameters.AddWithValue("?", typeCode);
-                                cmd.Parameters.AddWithValue("?", tariffClass);
                                 break;
 
                             case SolarReportType.Region:
@@ -356,13 +303,11 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                                       $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
                                       $"AND n.tariff_code=t.tariff_code " +
                                       $"AND a.area_code=n.area_code AND a.region=? " +
-                                      $"AND tariff_class=? " +
                                       $"AND tariff_class NOT IN ('GV1UV','GV1SH') " +
                                       $"GROUP BY 1 ORDER BY 1";
                                 cmd.CommandText = sql;
                                 cmd.Parameters.AddWithValue("?", calcCycle);
                                 cmd.Parameters.AddWithValue("?", typeCode);
-                                cmd.Parameters.AddWithValue("?", tariffClass);
                                 break;
 
                             default: // EntireCEB
@@ -371,42 +316,41 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                                       $"FROM netmtcons n, tariff_code t " +
                                       $"WHERE n.calc_cycle=? AND {netTypeCondition} " +
                                       $"AND n.tariff_code=t.tariff_code " +
-                                      $"AND tariff_class=? " +
                                       $"AND tariff_class NOT IN ('GV1UV','GV1SH') " +
                                       $"GROUP BY 1 ORDER BY 1";
                                 cmd.CommandText = sql;
                                 cmd.Parameters.AddWithValue("?", calcCycle);
-                                cmd.Parameters.AddWithValue("?", tariffClass);
                                 break;
                         }
 
                         using (cmd)
                         using (var reader = cmd.ExecuteReader())
-                            if (reader.Read())
+                            while (reader.Read())
                             {
-                                data = new RawSolarData
+                                dataList.Add(new RawSolarData
                                 {
-                                    Category = tariffClass,
+                                    Category = reader[0]?.ToString().Trim() ?? "",
                                     Year = year,
                                     Month = month,
-                                    ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),
+                                    ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),  // units_in = exp
                                     ImportPeak = 0,
                                     ImportOffPeak = 0,
-                                    ExportDay = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),
+                                    ExportDay = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),  // units_out = imp
                                     ExportPeak = 0,
                                     ExportOffPeak = 0,
                                     BroughtForwardKwh = 0,  // Always 0 for non-NetMetering
                                     CarryForwardKwh = 0     // Always 0 for non-NetMetering
-                                };
+                                });
                             }
                     }
                 }
+                logger.Info($"GetAllOrdinaryData: Found {dataList.Count} tariff classes");
             }
             catch (Exception ex)
             {
-                logger.Error(ex, $"GetOrdinaryData class={tariffClass}");
+                logger.Error(ex, "GetAllOrdinaryData EXCEPTION");
             }
-            return data;
+            return dataList;
         }
 
         // ================================================================
@@ -485,10 +429,10 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                                     Category = "GV1",
                                     Year = year,
                                     Month = month,
-                                    ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),
+                                    ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),  // units_in = exp
                                     ImportPeak = 0,
                                     ImportOffPeak = 0,
-                                    ExportDay = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),
+                                    ExportDay = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),  // units_out = imp
                                     ExportPeak = 0,
                                     ExportOffPeak = 0,
                                     BroughtForwardKwh = reader[3] == DBNull.Value ? 0 : Convert.ToDecimal(reader[3]),
@@ -548,10 +492,10 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                                     Category = "GV1",
                                     Year = year,
                                     Month = month,
-                                    ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),
+                                    ImportDay = reader[1] == DBNull.Value ? 0 : Convert.ToDecimal(reader[1]),  // units_in = exp
                                     ImportPeak = 0,
                                     ImportOffPeak = 0,
-                                    ExportDay = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),
+                                    ExportDay = reader[2] == DBNull.Value ? 0 : Convert.ToDecimal(reader[2]),  // units_out = imp
                                     ExportPeak = 0,
                                     ExportOffPeak = 0,
                                     BroughtForwardKwh = 0,  // Always 0 for non-NetMetering
@@ -767,11 +711,17 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                     return ("", "");
                 }
 
-                // Parse "Apr 25" into month="Apr" and year="25"
+                // Parse "Apr 25" into month number and year
                 var parts = monthYear.Split(' ');
                 if (parts.Length == 2)
                 {
-                    return (parts[1], parts[0]); // year="25", month="Apr"
+                    string monthName = parts[0];
+                    string year = parts[1];
+
+                    // Convert month name to month number
+                    string monthNumber = ConvertMonthNameToNumber(monthName);
+
+                    return (year, monthNumber); // year="25", month="4"
                 }
 
                 return ("", "");
@@ -780,6 +730,29 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
             {
                 logger.Error(ex, $"Error parsing bill cycle {billCycle}");
                 return ("", "");
+            }
+        }
+
+        /// <summary>
+        /// Converts month name (e.g., "Apr", "Jan") to month number (e.g., "4", "1")
+        /// </summary>
+        private string ConvertMonthNameToNumber(string monthName)
+        {
+            switch (monthName)
+            {
+                case "Jan": return "1";
+                case "Feb": return "2";
+                case "Mar": return "3";
+                case "Apr": return "4";
+                case "May": return "5";
+                case "Jun": return "6";
+                case "Jul": return "7";
+                case "Aug": return "8";
+                case "Sep": return "9";
+                case "Oct": return "10";
+                case "Nov": return "11";
+                case "Dec": return "12";
+                default: return monthName; // Return as-is if not recognized
             }
         }
     }
