@@ -33,7 +33,8 @@
         FixedSolarData,
         VariableSolarData,
         TotalSolarCustomers,
-        RawDataForSolar
+        RawDataForSolar,
+        NetMetering
     }
 
     // ====================================================================
