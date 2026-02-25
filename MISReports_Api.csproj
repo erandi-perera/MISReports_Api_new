@@ -493,6 +493,7 @@
     <Compile Include="Models\PIV\ProvinceSetOffModel.cs" />
     <Compile Include="Models\PIV\ProvinceWisePIVStampDutyModel.cs" />
     <Compile Include="Models\PUCSLReports\PUCSLSolarConnection\FixedSolarDataModel.cs" />
+    <Compile Include="Models\PUCSLReports\PUCSLSolarConnection\NetMeteringModel.cs" />
     <Compile Include="Models\PUCSLReports\PUCSLSolarConnection\PUCSLReportRequest.cs" />
     <Compile Include="Models\PIV\ProvincialConsolidatedOutputVATModel.cs" />
     <Compile Include="Models\PIV\RegionalPIVStampDutyModel.cs" />
