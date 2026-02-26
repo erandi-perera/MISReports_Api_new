@@ -4,7 +4,8 @@ namespace MISReports_Api.Models.PUCSLReports.PUCSLSolarConnection
 {
     /// <summary>
     /// Single row in the Net Metering report.
-    /// Represents data for a tariff category (D, GP, H, I, R, GV).
+    /// Represents aggregated data for a tariff category (D, GP, H, I, R, GV).
+    /// Combines both Ordinary and Bulk customers/units.
     /// </summary>
     public class NetMeteringData
     {
@@ -17,44 +18,37 @@ namespace MISReports_Api.Models.PUCSLReports.PUCSLSolarConnection
         /// <summary>Month as number string (e.g., "9" for September)</summary>
         public string Month { get; set; }
 
-        /// <summary>Number of customers</summary>
+        /// <summary>Total number of customers (Ordinary + Bulk)</summary>
         public int NoOfCustomers { get; set; }
 
-        /// <summary>Units Day in kWh</summary>
+        /// <summary>Total units in kWh (Ordinary units_out + Bulk exp_kwd_units)</summary>
         public decimal UnitsDayKwh { get; set; }
 
-        /// <summary>Units Peak (Bulk only)</summary>
+        /// <summary>Units Peak (Bulk only - exp_kwp_units)</summary>
         public decimal UnitsPeakKwh { get; set; }
 
-        /// <summary>Units Off-Peak (Bulk only)</summary>
+        /// <summary>Units Off-Peak (Bulk only - exp_kwo_units)</summary>
         public decimal UnitsOffPeakKwh { get; set; }
     }
 
     /// <summary>
     /// Response wrapper for Net Metering report.
-    /// Contains separate Ordinary and Bulk sections with totals.
+    /// Contains list of category rows and a total row.
     /// </summary>
     public class NetMeteringResponse
     {
-        /// <summary>Ordinary section data rows</summary>
-        public List<NetMeteringData> Ordinary { get; set; }
+        /// <summary>List of data rows grouped by tariff category</summary>
+        public List<NetMeteringData> Data { get; set; }
 
-        /// <summary>Ordinary total row</summary>
-        public NetMeteringData OrdinaryTotal { get; set; }
-
-        /// <summary>Bulk section data rows</summary>
-        public List<NetMeteringData> Bulk { get; set; }
-
-        /// <summary>Bulk total row</summary>
-        public NetMeteringData BulkTotal { get; set; }
+        /// <summary>Total row summing all categories</summary>
+        public NetMeteringData Total { get; set; }
 
         /// <summary>Error message if any issues occurred</summary>
         public string ErrorMessage { get; set; }
 
         public NetMeteringResponse()
         {
-            Ordinary = new List<NetMeteringData>();
-            Bulk = new List<NetMeteringData>();
+            Data = new List<NetMeteringData>();
         }
     }
 }

@@ -220,7 +220,7 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
         /// Gets ordinary customer count and units for a specific tariff code.
         /// Uses calc_cycle and tariff_code fields.
         /// </summary>
-        private (int customers, decimal unitsDay) GetOrdinaryData(SolarReportType rt, string typeCode,
+        private (int customers, decimal unitsDay) GetOrdinaryData(SolarReportType rt, string typeCode, 
             string calcCycle, string tariffCode)
         {
             int customers = 0;
