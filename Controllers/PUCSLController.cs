@@ -1,5 +1,4 @@
 ﻿using MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection;
-using MISReports_Api.Models.SolarInformation;
 using MISReports_Api.Models.PUCSLReports.PUCSLSolarConnection;
 using Newtonsoft.Json.Linq;
 using System;
@@ -27,6 +26,7 @@ namespace MISReports_Api.Controllers
         private readonly VariableSolarDataDao _variableSolarDataDao = new VariableSolarDataDao();
         private readonly TotalSolarCustomersDao _totalSolarCustomersDao = new TotalSolarCustomersDao();
         private readonly RawDataForSolarDao _rawDataForSolarDao = new RawDataForSolarDao();
+        private readonly NetMeteringDao _netMeteringDao = new NetMeteringDao();
 
         // ================================================================
         //  POST  pucsl/solarConnections
@@ -83,6 +83,9 @@ namespace MISReports_Api.Controllers
 
                 case PUCSLReportType.RawDataForSolar:
                     return ProcessRawDataForSolar(request);
+
+                case PUCSLReportType.NetMetering:
+                    return ProcessNetMetering(request);
 
                 default:
                     return Ok(JObject.FromObject(new
@@ -209,6 +212,9 @@ namespace MISReports_Api.Controllers
             }
         }
 
+        // ================================================================
+        //  PRIVATE — Raw Data For Solar
+        // ================================================================
         private IHttpActionResult ProcessRawDataForSolar(PUCSLRequest request)
         {
             try
@@ -237,6 +243,42 @@ namespace MISReports_Api.Controllers
                 {
                     data = (object)null,
                     errorMessage = "Error processing Raw Data for Solar report.",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        // ================================================================
+        //  PRIVATE — Net Metering
+        // ================================================================
+        private IHttpActionResult ProcessNetMetering(PUCSLRequest request)
+        {
+            try
+            {
+                if (!_netMeteringDao.TestConnection(out string connError))
+                {
+                    return Ok(JObject.FromObject(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    }));
+                }
+
+                var data = _netMeteringDao.GetNetMeteringReport(request);
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Error processing Net Metering report.",
                     errorDetails = ex.Message
                 }));
             }
