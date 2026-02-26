@@ -306,6 +306,10 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
 
             try
             {
+                string bulkTypeCode = (rt == SolarReportType.Province)
+                    ? typeCode.PadLeft(2, '0')  // "3" → "03"
+                    : typeCode;
+
                 using (var conn = _dbConnection.GetConnection(true)) // Bulk connection
                 {
                     conn.Open();
@@ -322,7 +326,7 @@ namespace MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection
                                   "AND a.area_code=n.area_cd AND a.prov_code=? AND tariff=?";
                             cmd.CommandText = sql;
                             cmd.Parameters.AddWithValue("?", billCycle);
-                            cmd.Parameters.AddWithValue("?", typeCode);
+                            cmd.Parameters.AddWithValue("?", bulkTypeCode);
                             cmd.Parameters.AddWithValue("?", tariff);
                             break;
 
