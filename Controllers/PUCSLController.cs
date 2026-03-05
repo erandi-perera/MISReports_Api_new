@@ -1,5 +1,4 @@
 ﻿using MISReports_Api.DAL.PUCSLReports.PUCSLSolarConnection;
-using MISReports_Api.Models.SolarInformation;
 using MISReports_Api.Models.PUCSLReports.PUCSLSolarConnection;
 using Newtonsoft.Json.Linq;
 using System;
@@ -15,7 +14,7 @@ namespace MISReports_Api.Controllers
     /// {
     ///   "reportCategory": "Province" | "Region" | "EntireCEB",
     ///   "typeCode":       "C"  (prov_code or region code; omit for EntireCEB),
-    ///   "billCycle":      "202501",
+    ///   "billCycle":      "440",
     ///   "reportType":     "FixedSolarData" | "VariableSolarData",
     ///   "solarType":      "NetAccounting" | "NetPlus" | "NetPlusPlus"
     /// }
@@ -24,13 +23,15 @@ namespace MISReports_Api.Controllers
     public class PUCSLController : ApiController
     {
         private readonly FixedSolarDataDao _fixedSolarDataDao = new FixedSolarDataDao();
-        // Future: private readonly VariableSolarDataDao _variableSolarDataDao = new VariableSolarDataDao();
+        private readonly VariableSolarDataDao _variableSolarDataDao = new VariableSolarDataDao();
+        private readonly TotalSolarCustomersDao _totalSolarCustomersDao = new TotalSolarCustomersDao();
+        private readonly RawDataForSolarDao _rawDataForSolarDao = new RawDataForSolarDao();
+        private readonly NetMeteringDao _netMeteringDao = new NetMeteringDao();
 
         // ================================================================
-        //  POST  pucslapi/solar-data
+        //  POST  pucsl/solarConnections
         //
         //  Routes to the correct DAO based on request.ReportType.
-        //  VariableSolarData returns a placeholder until that DAO exists.
         // ================================================================
         [HttpPost]
         [Route("pucsl/solarConnections")]
@@ -75,12 +76,16 @@ namespace MISReports_Api.Controllers
                     return ProcessFixedSolarData(request);
 
                 case PUCSLReportType.VariableSolarData:
-                    // Placeholder until VariableSolarDataDao is implemented
-                    return Ok(JObject.FromObject(new
-                    {
-                        data = (object)null,
-                        errorMessage = "Variable Solar Data report is not yet implemented."
-                    }));
+                    return ProcessVariableSolarData(request);
+
+                case PUCSLReportType.TotalSolarCustomers:
+                    return ProcessTotalSolarCustomers(request);
+
+                case PUCSLReportType.RawDataForSolar:
+                    return ProcessRawDataForSolar(request);
+
+                case PUCSLReportType.NetMetering:
+                    return ProcessNetMetering(request);
 
                 default:
                     return Ok(JObject.FromObject(new
@@ -116,12 +121,164 @@ namespace MISReports_Api.Controllers
                     errorMessage = (string)null
                 }));
             }
+            catch (ArgumentException argEx)
+            {
+                return BadRequest(argEx.Message); 
+            }
             catch (Exception ex)
             {
                 return Ok(JObject.FromObject(new
                 {
                     data = (object)null,
                     errorMessage = "Cannot retrieve Fixed Solar Data report.",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        // ================================================================
+        //  PRIVATE — Variable Solar Data
+        // ================================================================
+        private IHttpActionResult ProcessVariableSolarData(PUCSLRequest request)
+        {
+            try
+            {
+                if (!_variableSolarDataDao.TestConnection(out string connError))
+                {
+                    return Ok(JObject.FromObject(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    }));
+                }
+
+                var data = _variableSolarDataDao.GetVariableSolarDataReport(request);
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                }));
+            }
+            catch (ArgumentException argEx)
+            {
+                return BadRequest(argEx.Message); // Returns 400 with clean message
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot retrieve Variable Solar Data report.",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        // ================================================================
+        //  PRIVATE — Total Solar Customers
+        // ================================================================
+        private IHttpActionResult ProcessTotalSolarCustomers(PUCSLRequest request)
+        {
+            try
+            {
+                if (!_totalSolarCustomersDao.TestConnection(out string connError))
+                {
+                    return Ok(JObject.FromObject(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    }));
+                }
+
+                var data = _totalSolarCustomersDao.GetTotalSolarCustomersReport(request);
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot retrieve Total Solar Customers report.",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        // ================================================================
+        //  PRIVATE — Raw Data For Solar
+        // ================================================================
+        private IHttpActionResult ProcessRawDataForSolar(PUCSLRequest request)
+        {
+            try
+            {
+                if (!_rawDataForSolarDao.TestConnection(out string connError))
+                {
+                    return Ok(JObject.FromObject(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    }));
+                }
+
+                var data = _rawDataForSolarDao.GetRawDataForSolarReport(request);
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Error processing Raw Data for Solar report.",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        // ================================================================
+        //  PRIVATE — Net Metering
+        // ================================================================
+        private IHttpActionResult ProcessNetMetering(PUCSLRequest request)
+        {
+            try
+            {
+                if (!_netMeteringDao.TestConnection(out string connError))
+                {
+                    return Ok(JObject.FromObject(new
+                    {
+                        data = (object)null,
+                        errorMessage = "Database connection failed.",
+                        errorDetails = connError
+                    }));
+                }
+
+                var data = _netMeteringDao.GetNetMeteringReport(request);
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = data,
+                    errorMessage = (string)null
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Error processing Net Metering report.",
                     errorDetails = ex.Message
                 }));
             }

@@ -9,6 +9,7 @@
     /// </summary>
     public enum SolarNetType
     {
+        NetMetering,
         NetAccounting,
         NetPlus,
         NetPlusPlus
@@ -30,7 +31,10 @@
     public enum PUCSLReportType
     {
         FixedSolarData,
-        VariableSolarData
+        VariableSolarData,
+        TotalSolarCustomers,
+        RawDataForSolar,
+        NetMetering
     }
 
     // ====================================================================
