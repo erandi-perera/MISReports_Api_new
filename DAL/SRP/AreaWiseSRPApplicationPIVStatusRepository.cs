@@ -1,4 +1,4 @@
-﻿using MISReports_Api.Models.SRP;
+using MISReports_Api.Models.SRP;
 using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
@@ -71,9 +71,9 @@ ORDER BY 1";
             using (OracleCommand cmd = new OracleCommand(sql, conn))
             {
                 cmd.BindByName = true;
-                cmd.Parameters.Add("compId", OracleDbType.Varchar2).Value = compId;
+                cmd.Parameters.Add("compId",   OracleDbType.Varchar2).Value = compId;
                 cmd.Parameters.Add("fromDate", OracleDbType.Varchar2).Value = fromDate.ToString("yyyy/MM/dd");
-                cmd.Parameters.Add("toDate", OracleDbType.Varchar2).Value = toDate.ToString("yyyy/MM/dd");
+                cmd.Parameters.Add("toDate",   OracleDbType.Varchar2).Value = toDate.ToString("yyyy/MM/dd");
 
                 conn.Open();
                 using (OracleDataReader reader = cmd.ExecuteReader())
@@ -82,24 +82,24 @@ ORDER BY 1";
                     {
                         var model = new AreaWiseSRPApplicationPIVStatusModel
                         {
-                            Dept_Id = reader["dept_id"].ToString(),
-                            Id_No = reader["Id_no"].ToString(),
+                            Dept_Id        = reader["dept_id"].ToString(),
+                            Id_No          = reader["Id_no"].ToString(),
                             Application_No = reader["application_no"].ToString(),
-                            Name = reader["Name"].ToString(),
-                            Address = reader["address"].ToString(),
-                            Submit_Date = reader["submit_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["submit_date"]),
-                            Status = reader["status"].ToString(),
-                            Description = reader["description"].ToString(),
-                            Piv_No = reader["Piv_no"].ToString(),
-                            Paid_Date = reader["Paid_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["Paid_date"]),
-                            Piv_Amount = reader["Piv_amount"] == DBNull.Value ? 0m : Convert.ToDecimal(reader["Piv_amount"]),
-                            Tariff_Code = reader["tariff_code"].ToString(),
-                            Phase = reader["phase"].ToString(),
+                            Name           = reader["Name"].ToString(),
+                            Address        = reader["address"].ToString(),
+                            Submit_Date    = reader["submit_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["submit_date"]),
+                            Status         = reader["status"].ToString(),
+                            Description    = reader["description"].ToString(),
+                            Piv_No         = reader["Piv_no"].ToString(),
+                            Paid_Date      = reader["Paid_date"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(reader["Paid_date"]),
+                            Piv_Amount     = reader["Piv_amount"] == DBNull.Value ? 0m : Convert.ToDecimal(reader["Piv_amount"]),
+                            Tariff_Code    = reader["tariff_code"].ToString(),
+                            Phase          = reader["phase"].ToString(),
                             Existing_Acc_No = reader["existing_acc_no"].ToString(),
-                            Area = reader["Area"].ToString(),
-                            Province = reader["province"].ToString(),
-                            Cct_Name = reader["CCT_NAME"].ToString(),
-                            Comp_Nm = reader["COMP_NM"].ToString()
+                            Area           = reader["Area"].ToString(),
+                            Province       = reader["province"].ToString(),
+                            Cct_Name       = reader["CCT_NAME"].ToString(),
+                            Comp_Nm        = reader["COMP_NM"].ToString()
                         };
                         result.Add(model);
                     }
