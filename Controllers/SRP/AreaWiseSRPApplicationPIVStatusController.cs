@@ -1,4 +1,4 @@
-using MISReports_Api.DAL.SRP;
+﻿using MISReports_Api.DAL.SRP;
 using System;
 using System.Globalization;
 using System.Web.Http;
@@ -26,7 +26,7 @@ namespace MISReports_Api.Controllers.SRP
             }
 
             if (!DateTime.TryParseExact(fromDate, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime fromDt) ||
-                !DateTime.TryParseExact(toDate,   "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime toDt))
+                !DateTime.TryParseExact(toDate, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime toDt))
             {
                 return BadRequest("Invalid date format. Use yyyyMMdd (e.g. 20250101).");
             }
