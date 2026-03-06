@@ -328,6 +328,7 @@
     <Compile Include="Controllers\SolarDetails\SolarBillingController.cs" />
     <Compile Include="Controllers\SolarDetails\SolarPendingJobsController.cs" />
     <Compile Include="Controllers\SRP\AreaWiseSRPApplicationPIVController.cs" />
+    <Compile Include="Controllers\SRP\AreaWiseSRPApplicationPIVStatusController.cs" />
     <Compile Include="Controllers\WorkInProgController\CostCenterWorkInProgressController.cs" />
     <Compile Include="Controllers\Debtors\AreasController.cs" />
     <Compile Include="Controllers\Debtors\BillCycleController.cs" />
@@ -416,6 +417,7 @@
     <Compile Include="DAL\SolarInformation\SolarPVCapacity\PVCapacitySummaryDao.cs" />
     <Compile Include="DAL\JobCard\JobCardRepository.cs" />
     <Compile Include="DAL\SRP\AreaWiseSRPApplicationPIVRepository.CS" />
+    <Compile Include="DAL\SRP\Class1.csAreaWiseSRPApplicationPIVStatusRepository.cs" />
     <Compile Include="DAL\WorkInProgRepo\CostCenterWorkInProgressRepository.cs" />
     <Compile Include="DAL\Debtors\AreasRepository.cs" />
     <Compile Include="DAL\Debtors\BillCycleRepository.cs" />
@@ -537,6 +539,7 @@
     <Compile Include="Models\SolarInformation\SolarReadingSummaryModel.cs" />
     <Compile Include="Models\SolarInformation\SolarReadingUsageBulkModel.cs" />
     <Compile Include="Models\SRP\AreaWiseSRPApplicationPIVModel.cs" />
+    <Compile Include="Models\SRP\AreaWiseSRPApplicationPIVStatusModel.cs" />
     <Compile Include="Models\TrialBalance\CompanyTrialBalanceModel.cs" />
     <Compile Include="Models\IncomeExpenditure\IncomeExpenditureModels.cs" />
     <Compile Include="Models\IncomeExpenditure\IncomeExpenditureRegionModel.cs" />
