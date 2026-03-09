@@ -328,6 +328,9 @@
     <Compile Include="Controllers\SolarDetails\SolarBillingController.cs" />
     <Compile Include="Controllers\SolarDetails\SolarPendingJobsController.cs" />
     <Compile Include="Controllers\SRP\AreaWiseSRPApplicationPIVController.cs" />
+    <Compile Include="Controllers\SRP\AreaWiseSRPApplicationPIVPaidReportController.cs" />
+    <Compile Include="Controllers\SRP\AreaWiseSRPApplicationPIVtobePaidReportController.cs" />
+    <Compile Include="Controllers\SRP\AreaWiseSRPEstimationPIVPaidController.cs" />
     <Compile Include="Controllers\WorkInProgController\CostCenterWorkInProgressController.cs" />
     <Compile Include="Controllers\Debtors\AreasController.cs" />
     <Compile Include="Controllers\Debtors\BillCycleController.cs" />
@@ -415,7 +418,10 @@
     <Compile Include="DAL\SolarInformation\SolarPVCapacity\PVCapacityBillCycleDao.cs" />
     <Compile Include="DAL\SolarInformation\SolarPVCapacity\PVCapacitySummaryDao.cs" />
     <Compile Include="DAL\JobCard\JobCardRepository.cs" />
+    <Compile Include="DAL\SRP\AreaWiseSRPApplicationPIVPaidReportRepository.cs" />
     <Compile Include="DAL\SRP\AreaWiseSRPApplicationPIVRepository.CS" />
+    <Compile Include="DAL\SRP\AreaWiseSRPApplicationPIVtobePaidReportRepository.cs" />
+    <Compile Include="DAL\SRP\AreaWiseSRPEstimationPIVPaidRepository.cs" />
     <Compile Include="DAL\WorkInProgRepo\CostCenterWorkInProgressRepository.cs" />
     <Compile Include="DAL\Debtors\AreasRepository.cs" />
     <Compile Include="DAL\Debtors\BillCycleRepository.cs" />
@@ -537,6 +543,9 @@
     <Compile Include="Models\SolarInformation\SolarReadingSummaryModel.cs" />
     <Compile Include="Models\SolarInformation\SolarReadingUsageBulkModel.cs" />
     <Compile Include="Models\SRP\AreaWiseSRPApplicationPIVModel.cs" />
+    <Compile Include="Models\SRP\AreaWiseSRPApplicationPIVPaidReportModel.cs" />
+    <Compile Include="Models\SRP\AreaWiseSRPApplicationPIVtobePaidReportModel.cs" />
+    <Compile Include="Models\SRP\AreaWiseSRPEstimationPIVPaidReportModel.cs" />
     <Compile Include="Models\TrialBalance\CompanyTrialBalanceModel.cs" />
     <Compile Include="Models\IncomeExpenditure\IncomeExpenditureModels.cs" />
     <Compile Include="Models\IncomeExpenditure\IncomeExpenditureRegionModel.cs" />
