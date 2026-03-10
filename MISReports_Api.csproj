@@ -333,6 +333,7 @@
     <Compile Include="Controllers\SRP\AreaWiseSRPApplicationPIVtobePaidReportController.cs" />
     <Compile Include="Controllers\SRP\AreaWiseSRPEstimationPIVPaidController.cs" />
     <Compile Include="Controllers\SRP\AreaWiseSRPApplicationPIVStatusController.cs" />
+    <Compile Include="Controllers\SRP\AreaWiseSRPEstimationPIVController.cs" />
     <Compile Include="Controllers\WorkInProgController\CostCenterWorkInProgressController.cs" />
     <Compile Include="Controllers\Debtors\AreasController.cs" />
     <Compile Include="Controllers\Debtors\BillCycleController.cs" />
@@ -424,6 +425,7 @@
     <Compile Include="DAL\JobCard\JobCardRepository.cs" />
     <Compile Include="DAL\SRP\AreaWiseSRPApplicationPIVPaidReportRepository.cs" />
     <Compile Include="DAL\SRP\AreaWiseSRPApplicationPIVRepository.CS" />
+    <Compile Include="DAL\SRP\AreaWiseSRPEstimationPIVRepository.cs" />
     <Compile Include="DAL\SRP\AreaWiseSRPApplicationPIVtobePaidReportRepository.cs" />
     <Compile Include="DAL\SRP\AreaWiseSRPEstimationPIVPaidRepository.cs" />
     <Compile Include="DAL\SRP\Class1.csAreaWiseSRPApplicationPIVStatusRepository.cs" />
@@ -553,6 +555,7 @@
     <Compile Include="Models\SRP\AreaWiseSRPApplicationPIVtobePaidReportModel.cs" />
     <Compile Include="Models\SRP\AreaWiseSRPEstimationPIVPaidReportModel.cs" />
     <Compile Include="Models\SRP\AreaWiseSRPApplicationPIVStatusModel.cs" />
+    <Compile Include="Models\SRP\AreaWiseSRPEstimationPIVModel.cs" />
     <Compile Include="Models\TrialBalance\CompanyTrialBalanceModel.cs" />
     <Compile Include="Models\IncomeExpenditure\IncomeExpenditureModels.cs" />
     <Compile Include="Models\IncomeExpenditure\IncomeExpenditureRegionModel.cs" />
