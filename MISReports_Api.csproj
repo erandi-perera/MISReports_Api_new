@@ -282,6 +282,7 @@
     <Compile Include="Controllers\IncomeExpenditure\IncomeExpenditureRegionDetailedController.cs" />
     <Compile Include="Controllers\Inventory\avgConsumptionSelectedController.cs" />
     <Compile Include="Controllers\Inventory\InventoryOnHandController.cs" />
+    <Compile Include="Controllers\Inventory\ProvinceQtyOnHandCrossTabController.cs" />
     <Compile Include="Controllers\JobCard\JobCardController.cs" />
     <Compile Include="Controllers\JobCard\JobCardMaterialsController.cs" />
     <Compile Include="Controllers\LedgerCard\DivisionalLedgerCardController.cs" />
@@ -359,6 +360,7 @@
     <Compile Include="DAL\IncomeExpenditure\IncomeExpenditureRegionDetailedRepository.cs" />
     <Compile Include="DAL\Inventory\avgConsumptionSelectedDataRepository.cs" />
     <Compile Include="DAL\Inventory\InventoryOnHandRepository.cs" />
+    <Compile Include="DAL\Inventory\ProvinceQtyOnHandCrossTabRepository.cs" />
     <Compile Include="DAL\JobCard\JobCardMaterialsRepository.cs" />
     <Compile Include="DAL\LedgerCard\DivisionalLedgerCardRepository.cs" />
     <Compile Include="DAL\LedgerCard\LedgerCardTotalRepository.cs" />
@@ -476,6 +478,7 @@
     <Compile Include="Models\IncomeExpenditure\IncomeExpenditureRegionDetailedModel.cs" />
     <Compile Include="Models\Inventory\avgConsumptionSelectedDataModel.cs" />
     <Compile Include="Models\Inventory\InventoryOnHandModel.cs" />
+    <Compile Include="Models\Inventory\ProvinceQtyOnHandCrossTabModel.cs" />
     <Compile Include="Models\JobCard\JobCardMaterialsModel.cs" />
     <Compile Include="Models\JobCard\JobCardModel.cs" />
     <Compile Include="Models\LedgerCard\DivisionalLedgerCardModel.cs" />
