@@ -280,7 +280,7 @@
     <Compile Include="Controllers\Cash Book\CashBookCCReportController.cs" />
     <Compile Include="Controllers\Cash Book\CashBookReportController.cs" />
     <Compile Include="Controllers\Cash Book\DocumentInquiryController.cs" />
-    <Compile Include="Controllers\GeneralController.cs" />
+    <Compile Include="Controllers\ActiveCustomerSalesController.cs" />
     <Compile Include="Controllers\IncomeExpenditure\IncomeExpenditureRegionDetailedController.cs" />
     <Compile Include="Controllers\Inventory\avgConsumptionSelectedController.cs" />
     <Compile Include="Controllers\Inventory\InventoryOnHandController.cs" />
@@ -358,6 +358,7 @@
     <Compile Include="Controllers\WorkInProgController\ProjectAgeAnalysisController.cs" />
     <Compile Include="Controllers\WorkInProgController\ProjectCommitmentSummaryController.cs" />
     <Compile Include="Controllers\WorkInProgController\WorkInProgressCompletedCostCenterwiseController.cs" />
+    <Compile Include="DAL\ActiveCustomerSalesRepository.cs" />
     <Compile Include="DAL\Cash Book\CashBookCCReportRepository.cs" />
     <Compile Include="DAL\Cash Book\CashBookReportRepository.cs" />
     <Compile Include="DAL\Cash Book\DocumentInquiryRepository.cs" />
@@ -476,6 +477,8 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\BillCycleHelper.cs" />
+    <Compile Include="Models\ActiveCustomerSalesModel.cs" />
+    <Compile Include="Models\ActiveCustomerTariffResponse.cs" />
     <Compile Include="Models\Cash Book\CashBookCCReportModel.cs" />
     <Compile Include="Models\Cash Book\CashBookReportModel.cs" />
     <Compile Include="Models\Cash Book\DocumentInquiryModel.cs" />
