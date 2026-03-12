@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Web.Http;
 using MISReports_Api.DAL;
 using MISReports_Api.Models;
@@ -41,35 +40,6 @@ namespace MISReports_Api.Controllers
                     },
                     errorMessage = (string)null
                 });
-            }
-            catch (Exception ex)
-            {
-                return Ok(new { data = (object)null, errorMessage = ex.Message });
-            }
-        }
-
-        [HttpGet]
-        [Route("metadata/areas")]
-        public IHttpActionResult GetAreas() => SafeExecute(() => _smsDao.GetAreaList());
-
-        [HttpGet]
-        [Route("metadata/provinces")]
-        public IHttpActionResult GetProvinces() => SafeExecute(() => _smsDao.GetProvinceList());
-
-        [HttpGet]
-        [Route("metadata/regions")]
-        public IHttpActionResult GetRegions() => SafeExecute(() => _smsDao.GetRegionList());
-
-        [HttpGet]
-        [Route("metadata/bill-cycles")]
-        public IHttpActionResult GetBillCycles() => SafeExecute(() => _smsDao.GetRecentBillCycles());
-
-        // Helper to reduce code repetition
-        private IHttpActionResult SafeExecute<T>(Func<T> action)
-        {
-            try
-            {
-                return Ok(new { data = action(), errorMessage = (string)null });
             }
             catch (Exception ex)
             {
