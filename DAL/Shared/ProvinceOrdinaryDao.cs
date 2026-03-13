@@ -25,7 +25,7 @@ namespace MISReports_Api.DAL.Shared
                 {
                     conn.Open();
 
-                    string sql = "SELECT prov_code,prov_name FROM provinces ORDER BY prov_name";
+                    string sql = "Select * from prov_servers where prov_code not in('0','Z')";
 
                     using (var cmd = new OleDbCommand(sql, conn))
                     using (var reader = cmd.ExecuteReader())
@@ -34,8 +34,8 @@ namespace MISReports_Api.DAL.Shared
                         {
                             var province = new ProvinceModel
                             {
-                                ProvinceCode = reader[0]?.ToString().Trim(),
-                                ProvinceName = reader[1]?.ToString().Trim()
+                                ProvinceCode = reader[1]?.ToString().Trim(),
+                                ProvinceName = reader[0]?.ToString().Trim()
                             };
 
                             provinceList.Add(province);

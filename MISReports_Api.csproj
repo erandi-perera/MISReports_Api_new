@@ -276,12 +276,16 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\SampleDirection.cs" />
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
+    <Compile Include="Controllers\BillCalculationController.cs" />
     <Compile Include="Controllers\Cash Book\CashBookCCReportController.cs" />
     <Compile Include="Controllers\Cash Book\CashBookReportController.cs" />
     <Compile Include="Controllers\Cash Book\DocumentInquiryController.cs" />
+    <Compile Include="Controllers\ActiveCustomerSalesController.cs" />
     <Compile Include="Controllers\IncomeExpenditure\IncomeExpenditureRegionDetailedController.cs" />
     <Compile Include="Controllers\Inventory\avgConsumptionSelectedController.cs" />
     <Compile Include="Controllers\Inventory\InventoryOnHandController.cs" />
+    <Compile Include="Controllers\Inventory\ProvinceQtyOnHandCrossTabController.cs" />
+    <Compile Include="Controllers\Inventory\MaterialCommittedStockController.cs" />
     <Compile Include="Controllers\Inventory\QtyonHandAllRegionController.cs" />
     <Compile Include="Controllers\JobCard\JobCardController.cs" />
     <Compile Include="Controllers\JobCard\JobCardMaterialsController.cs" />
@@ -292,6 +296,13 @@
     <Compile Include="Controllers\LedgerCard\LedgerCardTotalController.cs" />
     <Compile Include="Controllers\PhysicalVerification\AnnualVerificationSheetController.cs" />
     <Compile Include="Controllers\PhysicalVerification\AnnualVerificationWHwiseSignatureController.cs" />
+    <Compile Include="Controllers\PhysicalVerification\LastDocController.cs" />
+    <Compile Include="Controllers\PhysicalVerification\PHVDamageBOSController.cs" />
+    <Compile Include="Controllers\PhysicalVerification\PHVDamageController.cs" />
+    <Compile Include="Controllers\PhysicalVerification\PHVNonMovingWHwiseBOSController.cs" />
+    <Compile Include="Controllers\PhysicalVerification\PHVObsoleteIdleBOSController.cs" />
+    <Compile Include="Controllers\PhysicalVerification\PHVObsoleteIdleController.cs" />
+    <Compile Include="Controllers\PhysicalVerification\PHVShoratgeSurplusWHwiseController.cs" />
     <Compile Include="Controllers\PhysicalVerification\PHVSlowNonMovingWHwiseController.cs" />
     <Compile Include="Controllers\PIV\AccCodeWisePivNotAfmhqController.cs" />
     <Compile Include="Controllers\PIV\AccountCodesWisePivController.cs" />
@@ -319,6 +330,7 @@
     <Compile Include="Controllers\PIV\ProvincePIVprovincialPOSController.cs" />
     <Compile Include="Controllers\PIV\ProvinceSetOffReportController.cs" />
     <Compile Include="Controllers\PIV\ProvinceWisePIVStampDutyController.cs" />
+    <Compile Include="Controllers\PUCSLController.cs" />
     <Compile Include="Controllers\PIV\ProvincialConsolidatedOutputVATController.cs" />
     <Compile Include="Controllers\PIV\RefundedPivController.cs" />
     <Compile Include="Controllers\PIV\RegionalPIVStampDutyController.cs" />
@@ -328,6 +340,12 @@
     <Compile Include="Controllers\SharedController.cs" />
     <Compile Include="Controllers\SolarDetails\SolarBillingController.cs" />
     <Compile Include="Controllers\SolarDetails\SolarPendingJobsController.cs" />
+    <Compile Include="Controllers\SRP\AreaWiseSRPApplicationPIVController.cs" />
+    <Compile Include="Controllers\SRP\AreaWiseSRPApplicationPIVPaidReportController.cs" />
+    <Compile Include="Controllers\SRP\AreaWiseSRPApplicationPIVtobePaidReportController.cs" />
+    <Compile Include="Controllers\SRP\AreaWiseSRPEstimationPIVPaidController.cs" />
+    <Compile Include="Controllers\SRP\AreaWiseSRPApplicationPIVStatusController.cs" />
+    <Compile Include="Controllers\SRP\AreaWiseSRPEstimationPIVController.cs" />
     <Compile Include="Controllers\WorkInProgController\CostCenterWorkInProgressController.cs" />
     <Compile Include="Controllers\Debtors\AreasController.cs" />
     <Compile Include="Controllers\Debtors\BillCycleController.cs" />
@@ -350,12 +368,18 @@
     <Compile Include="Controllers\WorkInProgController\ProjectAgeAnalysisController.cs" />
     <Compile Include="Controllers\WorkInProgController\ProjectCommitmentSummaryController.cs" />
     <Compile Include="Controllers\WorkInProgController\WorkInProgressCompletedCostCenterwiseController.cs" />
+    <Compile Include="DAL\ActiveCustomerSalesRepository.cs" />
     <Compile Include="DAL\Cash Book\CashBookCCReportRepository.cs" />
     <Compile Include="DAL\Cash Book\CashBookReportRepository.cs" />
     <Compile Include="DAL\Cash Book\DocumentInquiryRepository.cs" />
+    <Compile Include="DAL\General\BillCalculation\BillCalculationDao.cs" />
+    <Compile Include="DAL\General\SecurityDepositContractDemandBulk\ContractDemandBillCycleDao.cs" />
+    <Compile Include="DAL\General\SecurityDepositContractDemandBulk\ContractDemandBulkDao.cs" />
     <Compile Include="DAL\IncomeExpenditure\IncomeExpenditureRegionDetailedRepository.cs" />
     <Compile Include="DAL\Inventory\avgConsumptionSelectedDataRepository.cs" />
     <Compile Include="DAL\Inventory\InventoryOnHandRepository.cs" />
+    <Compile Include="DAL\Inventory\ProvinceQtyOnHandCrossTabRepository.cs" />
+    <Compile Include="DAL\Inventory\MaterialCommittedStockRepository.cs" />
     <Compile Include="DAL\Inventory\QtyonHandAllRegionRepository.cs" />
     <Compile Include="DAL\JobCard\JobCardMaterialsRepository.cs" />
     <Compile Include="DAL\JobSearch\JobSearchMainTableRepository.cs" />
@@ -364,6 +388,13 @@
     <Compile Include="DAL\LedgerCard\LedgerCardTotalRepository.cs" />
     <Compile Include="DAL\PhysicalVerification\AnnualVerificationSheetRepository.cs" />
     <Compile Include="DAL\PhysicalVerification\AnnualVerificationWHwiseSignatureRepository.cs" />
+    <Compile Include="DAL\PhysicalVerification\LastDocRepository.cs" />
+    <Compile Include="DAL\PhysicalVerification\PHVDamageBOSRepository.cs" />
+    <Compile Include="DAL\PhysicalVerification\PHVDamageRepository.cs" />
+    <Compile Include="DAL\PhysicalVerification\PHVNonMovingWHwiseBOSRepository.cs" />
+    <Compile Include="DAL\PhysicalVerification\PHVObsoleteIdleBOSRepository.cs" />
+    <Compile Include="DAL\PhysicalVerification\PHVObsoleteIdleRepository.cs" />
+    <Compile Include="DAL\PhysicalVerification\PHVShoratgeSurplusWHwiseRepository.cs" />
     <Compile Include="DAL\PhysicalVerification\PHVSlowNonMovingWHwiseRepository.cs" />
     <Compile Include="DAL\PIV\AccCodeWisePivNotAfmhqRepository.cs" />
     <Compile Include="DAL\PIV\AccountCodesWisePivRepository.cs" />
@@ -391,6 +422,12 @@
     <Compile Include="DAL\PIV\ProvincePIVprovincialRepository.cs" />
     <Compile Include="DAL\PIV\ProvinceSetOffReportRepository.cs" />
     <Compile Include="DAL\PIV\ProvinceWisePIVStampDutyRepository.cs" />
+    <Compile Include="DAL\PUCSLReports\PUCSLSolarConnection\FixedSolarDataDao.cs" />
+    <Compile Include="DAL\PUCSLReports\PUCSLSolarConnection\NetMeteringDao.cs" />
+    <Compile Include="DAL\PUCSLReports\PUCSLSolarConnection\RawDataForSolarDao.cs" />
+    <Compile Include="DAL\PUCSLReports\PUCSLSolarConnection\TotalSolarCustomersDao.cs" />
+    <Compile Include="DAL\PUCSLReports\PUCSLSolarConnection\VariableSolarDataDao.cs" />
+    <Compile Include="DAL\Shared\BillCycleFromAreaDao.cs" />
     <Compile Include="DAL\PIV\ProvincialConsolidatedOutputVATRepository.cs" />
     <Compile Include="DAL\PIV\RefundedPivRepository.cs" />
     <Compile Include="DAL\PIV\RegionalPIVStampDutyRepository.cs" />
@@ -411,6 +448,12 @@
     <Compile Include="DAL\SolarInformation\SolarPVCapacity\PVCapacityBillCycleDao.cs" />
     <Compile Include="DAL\SolarInformation\SolarPVCapacity\PVCapacitySummaryDao.cs" />
     <Compile Include="DAL\JobCard\JobCardRepository.cs" />
+    <Compile Include="DAL\SRP\AreaWiseSRPApplicationPIVPaidReportRepository.cs" />
+    <Compile Include="DAL\SRP\AreaWiseSRPApplicationPIVRepository.CS" />
+    <Compile Include="DAL\SRP\AreaWiseSRPEstimationPIVRepository.cs" />
+    <Compile Include="DAL\SRP\AreaWiseSRPApplicationPIVtobePaidReportRepository.cs" />
+    <Compile Include="DAL\SRP\AreaWiseSRPEstimationPIVPaidRepository.cs" />
+    <Compile Include="DAL\SRP\Class1.csAreaWiseSRPApplicationPIVStatusRepository.cs" />
     <Compile Include="DAL\WorkInProgRepo\CostCenterWorkInProgressRepository.cs" />
     <Compile Include="DAL\Debtors\AreasRepository.cs" />
     <Compile Include="DAL\Debtors\BillCycleRepository.cs" />
@@ -454,6 +497,8 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\BillCycleHelper.cs" />
+    <Compile Include="Models\ActiveCustomerSalesModel.cs" />
+    <Compile Include="Models\ActiveCustomerTariffResponse.cs" />
     <Compile Include="Models\Cash Book\CashBookCCReportModel.cs" />
     <Compile Include="Models\Cash Book\CashBookReportModel.cs" />
     <Compile Include="Models\Cash Book\DocumentInquiryModel.cs" />
@@ -462,9 +507,13 @@
     <Compile Include="Models\Debtors\DebtorDetailModel.cs" />
     <Compile Include="Models\Debtors\DebtorsBulkModel.cs" />
     <Compile Include="Models\Debtors\DebtorsModel.cs" />
+    <Compile Include="Models\General\BillCalculationModel.cs" />
+    <Compile Include="Models\General\SecDepositConDemandBulkModel.cs" />
     <Compile Include="Models\IncomeExpenditure\IncomeExpenditureRegionDetailedModel.cs" />
     <Compile Include="Models\Inventory\avgConsumptionSelectedDataModel.cs" />
     <Compile Include="Models\Inventory\InventoryOnHandModel.cs" />
+    <Compile Include="Models\Inventory\ProvinceQtyOnHandCrossTabModel.cs" />
+    <Compile Include="Models\Inventory\MaterialCommittedStockModel.cs" />
     <Compile Include="Models\Inventory\QtyonHandAllRegionModel.cs" />
     <Compile Include="Models\JobCard\JobCardMaterialsModel.cs" />
     <Compile Include="Models\JobCard\JobCardModel.cs" />
@@ -477,6 +526,13 @@
     <Compile Include="Models\OUMModels.cs" />
     <Compile Include="Models\PhysicalVerification\AnnualVerificationSheetModel.cs" />
     <Compile Include="Models\PhysicalVerification\AnnualVerificationWHwiseSignatureModel.cs" />
+    <Compile Include="Models\PhysicalVerification\LastDocModel.cs" />
+    <Compile Include="Models\PhysicalVerification\PHVDamageBOSModel.cs" />
+    <Compile Include="Models\PhysicalVerification\PHVDamageModel.cs" />
+    <Compile Include="Models\PhysicalVerification\PHVNonMovingWHwiseBOSModel.cs" />
+    <Compile Include="Models\PhysicalVerification\PHVObsoleteIdleBOSModel.cs" />
+    <Compile Include="Models\PhysicalVerification\PHVObsoleteIdleModel.cs" />
+    <Compile Include="Models\PhysicalVerification\PHVShoratgeSurplusWHwiseModel.cs" />
     <Compile Include="Models\PhysicalVerification\PHVSlowNonMovingWHwiseModel.cs" />
     <Compile Include="Models\PIV\AccCodeWisePivNotAfmhqModel.cs" />
     <Compile Include="Models\PIV\accountCodesWisePivModel.cs" />
@@ -504,12 +560,18 @@
     <Compile Include="Models\PIV\ProvincePIVprovincialPOSModel.cs" />
     <Compile Include="Models\PIV\ProvinceSetOffModel.cs" />
     <Compile Include="Models\PIV\ProvinceWisePIVStampDutyModel.cs" />
+    <Compile Include="Models\PUCSLReports\PUCSLSolarConnection\FixedSolarDataModel.cs" />
+    <Compile Include="Models\PUCSLReports\PUCSLSolarConnection\NetMeteringModel.cs" />
+    <Compile Include="Models\PUCSLReports\PUCSLSolarConnection\PUCSLReportRequest.cs" />
     <Compile Include="Models\PIV\ProvincialConsolidatedOutputVATModel.cs" />
     <Compile Include="Models\PIV\RefundedPivModel.cs" />
     <Compile Include="Models\PIV\RegionalPIVStampDutyModel.cs" />
     <Compile Include="Models\PIV\RegionWiseVatReportModel.cs" />
     <Compile Include="Models\PIV\StampDutyDetailedModel.cs" />
     <Compile Include="Models\PIV\TypewisePIVModel.cs" />
+    <Compile Include="Models\PUCSLReports\PUCSLSolarConnection\RawDataForSolarModel.cs" />
+    <Compile Include="Models\PUCSLReports\PUCSLSolarConnection\TotalSolarCustomersModel.cs" />
+    <Compile Include="Models\PUCSLReports\PUCSLSolarConnection\VariableSolarDataModel.cs" />
     <Compile Include="Models\SolarDetails\SolarBillingModel.cs" />
     <Compile Include="Models\SolarDetails\SolarPendingJobsModel.cs" />
     <Compile Include="Models\SolarInformation\AreaBulkModel.cs" />
@@ -528,6 +590,12 @@
     <Compile Include="Models\SolarInformation\SolarReadingDetailedModel.cs" />
     <Compile Include="Models\SolarInformation\SolarReadingSummaryModel.cs" />
     <Compile Include="Models\SolarInformation\SolarReadingUsageBulkModel.cs" />
+    <Compile Include="Models\SRP\AreaWiseSRPApplicationPIVModel.cs" />
+    <Compile Include="Models\SRP\AreaWiseSRPApplicationPIVPaidReportModel.cs" />
+    <Compile Include="Models\SRP\AreaWiseSRPApplicationPIVtobePaidReportModel.cs" />
+    <Compile Include="Models\SRP\AreaWiseSRPEstimationPIVPaidReportModel.cs" />
+    <Compile Include="Models\SRP\AreaWiseSRPApplicationPIVStatusModel.cs" />
+    <Compile Include="Models\SRP\AreaWiseSRPEstimationPIVModel.cs" />
     <Compile Include="Models\TrialBalance\CompanyTrialBalanceModel.cs" />
     <Compile Include="Models\IncomeExpenditure\IncomeExpenditureModels.cs" />
     <Compile Include="Models\IncomeExpenditure\IncomeExpenditureRegionModel.cs" />
@@ -670,15 +738,15 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
-  <Import Project="packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets'))" />
     <Error Condition="!Exists('packages\NLog.Schema.6.0.3\build\NLog.Schema.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\NLog.Schema.6.0.3\build\NLog.Schema.targets'))" />
+    <Error Condition="!Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets'))" />
   </Target>
   <Import Project="packages\NLog.Schema.6.0.3\build\NLog.Schema.targets" Condition="Exists('packages\NLog.Schema.6.0.3\build\NLog.Schema.targets')" />
+  <Import Project="packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets" Condition="Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.4.1.0\build\net472\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

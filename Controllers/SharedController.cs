@@ -2,6 +2,7 @@
 using MISReports_Api.DAL.SolarInformation.SolarPVConnections;
 using MISReports_Api.DAL.SolarInformation.SolarPaymentRetail;
 using MISReports_Api.DAL.SolarInformation.SolarPVCapacity;
+using MISReports_Api.DAL.General.SecurityDepositContractDemandBulk;
 using MISReports_Api.DAL.Shared;
 using MISReports_Api.DAL;
 using Newtonsoft.Json.Linq;
@@ -24,6 +25,8 @@ namespace MISReports_Api.Controllers
         private readonly BillCycleRetailDao _billCycleRetailDao = new BillCycleRetailDao();
         private readonly AreasRepository _areasRepository = new AreasRepository();
         private readonly PVCapacityBillCycleDao _pVCapacityBillCycleDao = new PVCapacityBillCycleDao();
+        private readonly BillCycleFromAreaDao _billCycleFromAreaDao = new BillCycleFromAreaDao();
+        private readonly ContractDemandBillCycleDao _contractDemandBillCycle = new ContractDemandBillCycleDao();
 
         [HttpGet]
         [Route("ordinary/areas")]
@@ -343,6 +346,56 @@ namespace MISReports_Api.Controllers
             try
             {
                 var result = _pVCapacityBillCycleDao.GetLast24BillCycles();//From netprogrs table in InformixConnection database
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = result,
+                    errorMessage = result.ErrorMessage
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get max bill cycle",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        [HttpGet]
+        [Route("areas/billcycle/max")] //areas/billcycle/max
+        public IHttpActionResult GetBillCycleFromArea()
+        {
+            try
+            {
+                var result = _billCycleFromAreaDao.GetLast24BillCycles();//From areas table in InformixConnection database
+
+                return Ok(JObject.FromObject(new
+                {
+                    data = result,
+                    errorMessage = result.ErrorMessage
+                }));
+            }
+            catch (Exception ex)
+            {
+                return Ok(JObject.FromObject(new
+                {
+                    data = (object)null,
+                    errorMessage = "Cannot get max bill cycle from areas",
+                    errorDetails = ex.Message
+                }));
+            }
+        }
+
+        [HttpGet]
+        [Route("bulk/mon_tot/billcycle/max")] //ContractDemandBulk/billcycle/max
+        public IHttpActionResult GetContractDemandBillCycle()
+        {
+            try
+            {
+                var result = _contractDemandBillCycle.GetLast24BillCycles();//From netprogrs table in InformixConnection database
 
                 return Ok(JObject.FromObject(new
                 {
