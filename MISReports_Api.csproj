@@ -393,6 +393,7 @@
     <Compile Include="Controllers\Common\MaterialRequisitionWithIssueDetailsController.cs" />
     <Compile Include="Controllers\Common\ProvinceMaterialReqDetailController.cs" />
     <Compile Include="Controllers\Common\ProvinceMaterialReqSummaryController.cs" />
+    <Compile Include="Controllers\Common\TenderDocInquiryController.cs" />
     <Compile Include="Controllers\Common\TransactionsPerCostCenterController.cs" />
     <Compile Include="Controllers\Construction\BulkConnectionDetailsController.cs" />
     <Compile Include="Controllers\Construction\ConstructionAllController.cs" />
@@ -565,6 +566,7 @@
     <Compile Include="DAL\Common\MaterialRequisitionWithIssueDetailsDAL.cs" />
     <Compile Include="DAL\Common\ProvinceMaterialReqDetailDAL.cs" />
     <Compile Include="DAL\Common\ProvinceMaterialReqSummaryDAL.cs" />
+    <Compile Include="DAL\Common\TenderDocInquiryDAL.cs" />
     <Compile Include="DAL\Common\TransactionsPerCostCenterDAL.cs" />
     <Compile Include="DAL\Construction\BulkConnectionDetailsDAL.cs" />
     <Compile Include="DAL\Cash Book\AreaWiseCashBookInquiryDAL.cs" />
@@ -727,6 +729,7 @@
     <Compile Include="Models\Common\MaterialRequisitionWithIssueDetailsModel .cs" />
     <Compile Include="Models\Common\ProvinceMaterialReqDetailModel.cs" />
     <Compile Include="Models\Common\ProvinceMaterialReqSummaryModel.cs" />
+    <Compile Include="Models\Common\TenderDocInquiryModel.cs" />
     <Compile Include="Models\Common\TransactionsPerCostCenterModel.cs" />
     <Compile Include="Models\Construction\BulkConnectionDetailsModel.cs" />
     <Compile Include="Models\Construction\ConstructionAllModel.cs" />
@@ -1176,6 +1179,7 @@
     <Folder Include="Views\ProvinceMaterialReqSummary\" />
     <Folder Include="Views\RegionPeriodStatus\" />
     <Folder Include="Views\SMCJobProgress\" />
+    <Folder Include="Views\TenderDocInquiry\" />
     <Folder Include="Views\TransactionsPerCostCenter\" />
   </ItemGroup>
   <ItemGroup>
