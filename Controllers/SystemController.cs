@@ -1,37 +1,59 @@
 using System;
-using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Web.Http;
-// Import the Database Access Layer namespace (e.g., MISReports_Api_new.DAL or DBAccess)
+using Oracle.ManagedDataAccess.Client;
 
-namespace MISReports_Api_new.Controllers
+namespace MISReports_Api.Controllers
 {
-    [RoutePrefix("api")]
-    public class SystemController : ApiController
+    [RoutePrefix("api/user")]
+    public class UserController : ApiController
     {
+        // Retrieve connection string from Web.config
+        private readonly string connectionString = ConfigurationManager.ConnectionStrings["OracleTest"].ConnectionString;
+
         [HttpGet]
-        [Route("user-systems")]
-        public IHttpActionResult GetUserSystems()
+        [Route("get-employee/{epfNo}")]
+        public IHttpActionResult GetEmployeeByEpf(string epfNo)
         {
             try
             {
-                // SQL query to fetch system names and URLs from the SYSTEM_URL table
-                string query = "SELECT TRIM(SYSTEM) AS SYSTEM_NAME, TRIM(URL) AS SYSTEM_URL FROM SYSTEM_URL";
-
-                // Execute query via Data Access Layer
-                DataTable dt = DBAccess.ExecuteQuery(query);
-
-                var list = new List<object>();
-                foreach (DataRow row in dt.Rows)
+                using (OracleConnection conn = new OracleConnection(connectionString))
                 {
-                    list.Add(new
+                    conn.Open();
+
+                    // Query REP_ROLE_NEW table to match by EPF_NO or ROLEID
+                    string query = @"SELECT EPF_NO, ROLEID, ROLENAME, USERTYPE, COMPANY 
+                                    FROM REP_ROLE_NEW 
+                                    WHERE EPF_NO = :epfNo OR ROLEID = :epfNo";
+
+                    using (OracleCommand cmd = new OracleCommand(query, conn))
                     {
-                        name = row["SYSTEM_NAME"].ToString(),
-                        url = row["SYSTEM_URL"].ToString()
-                    });
+                        // Bind endpoint parameter to SQL parameter
+                        cmd.Parameters.Add(new OracleParameter("epfNo", epfNo));
+
+                        using (OracleDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                // Map Oracle record fields into JSON payload
+                                var employeeData = new
+                                {
+                                    success = true,
+                                    epfNo = reader["EPF_NO"] != DBNull.Value ? reader["EPF_NO"].ToString().Trim() : "",
+                                    roleId = reader["ROLEID"] != DBNull.Value ? reader["ROLEID"].ToString().Trim() : "",
+                                    name = reader["ROLENAME"] != DBNull.Value ? reader["ROLENAME"].ToString().Trim() : "", // Trims trailing spaces
+                                    userType = reader["USERTYPE"] != DBNull.Value ? reader["USERTYPE"].ToString().Trim() : "",
+                                    company = reader["COMPANY"] != DBNull.Value ? reader["COMPANY"].ToString().Trim() : ""
+                                };
+
+                                return Ok(employeeData);
+                            }
+                        }
+                    }
                 }
 
-                return Ok(new { success = true, systems = list });
+                return Ok(new { success = false, message = "Employee record not found in REP_ROLE_NEW." });
             }
             catch (Exception ex)
             {
